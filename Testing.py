@@ -54,13 +54,22 @@ mask_transforms = transforms.Compose([
     transforms.ToTensor(),
 ])
 
+
 # Paths to datasets
-train_image_dir = 'data/train'
-train_mask_dir = 'data/train_masks'
-val_image_dir = 'data/val'
-val_mask_dir = 'data/val_masks'
-unlabeled_train_image_dir = 'data/train_unlabeled'
-test_image_dir = 'data/test'
+# train_image_dir = 'data/train'
+# train_mask_dir = 'data/train_masks'
+# val_image_dir = 'data/val'
+# val_mask_dir = 'data/val_masks'
+# unlabeled_train_image_dir = 'data/train_unlabeled'
+# test_image_dir = 'data/test'
+
+# Paths to cropped datasets
+train_image_dir = 'data_cropped/train_cropped'
+train_mask_dir = 'data_cropped/train_cropped'
+val_image_dir = 'data_cropped/val_cropped'
+val_mask_dir = 'data_cropped/val_cropped'
+unlabeled_train_image_dir = 'data_cropped/train_unlabelled_cropped'
+test_image_dir = 'data_cropped/test_cropped'
 
 # Initialize datasets
 train_dataset = UltrasoundDataset(train_image_dir, train_mask_dir, image_transforms)
@@ -164,11 +173,13 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-unlabeled_image_dir = 'data/test'
+# unlabeled_image_dir = 'data/test'
+unlabeled_image_dir = 'data_cropped/test_cropped'
 unlabeled_dataset = UnlabeledUltrasoundDataset(unlabeled_image_dir, transform)
 unlabeled_dataloader = DataLoader(unlabeled_dataset, batch_size=8, shuffle=False)
 
-pseudolabel_dir = 'data/test_pseudolabels'
+# pseudolabel_dir = 'data/test_pseudolabels'
+pseudolabel_dir = 'data_cropped/test_pseudolabels_cropped'
 os.makedirs(pseudolabel_dir, exist_ok=True)
 
 def extract_top_bottom_positions(mask):
@@ -223,22 +234,31 @@ with torch.no_grad():
                     print(f"No mask found or mask is empty for {pseudolabel_path}")
             else:
                 print(f"Warning: Empty pseudolabel for image {image_name}")
+                pseudolabel_path = os.path.join(pseudolabel_dir, image_name.replace('.jpg', '_pseudolabel.png'))
+                pseudolabel_img.save(pseudolabel_path)
+                distances.append({
+                    'MaskFile': pseudolabel_path,
+                    'DistanceFromTop': -1,  # Indicate no mask found
+                    'DistanceFromBottom': -1  # Indicate no mask found
+                })
+
+
+print("--- Testing complete: %s seconds ---" % (time.time() - start_time))
 
 # Convert torch tensors to Python types
 distances_serializable = []
 for entry in distances:
-    # Convert torch tensors to Python int or float
+    # Convert to Python int
     entry_serializable = {
         'MaskFile': entry['MaskFile'],
-        'DistanceFromTop': entry['DistanceFromTop'].item(),  # Convert torch int64 to Python int
-        'DistanceFromBottom': entry['DistanceFromBottom'].item()  # Convert torch int64 to Python int
+        'DistanceFromTop': int(entry['DistanceFromTop']),  # Convert to Python int
+        'DistanceFromBottom': int(entry['DistanceFromBottom'])  # Convert to Python int
     }
     distances_serializable.append(entry_serializable)
 
 with open('distances_test.json', 'w') as f:
     json.dump(distances_serializable, f)
 
-print("--- Testing complete: %s seconds ---" % (time.time() - start_time))
 
 # Initialize variables to store max and min values
 max_distance_from_top = float('-inf')
@@ -248,20 +268,32 @@ min_distance_from_bottom = float('inf')
 
 # Iterate through the distances list
 for entry in distances:
-    distance_from_top = entry['DistanceFromTop'].item()  # Convert tensor to Python int
-    distance_from_bottom = entry['DistanceFromBottom'].item()  # Convert tensor to Python int
+    distance_from_top = entry['DistanceFromTop']
+    distance_from_bottom = entry['DistanceFromBottom']
 
-    # Update max and min values for DistanceFromTop
-    if distance_from_top > max_distance_from_top:
-        max_distance_from_top = distance_from_top
-    if distance_from_top < min_distance_from_top:
-        min_distance_from_top = distance_from_top
+    # Update max and min values for DistanceFromTop if the distance is valid
+    if distance_from_top != -1:
+        if distance_from_top > max_distance_from_top:
+            max_distance_from_top = distance_from_top
+        if distance_from_top < min_distance_from_top:
+            min_distance_from_top = distance_from_top
 
-    # Update max and min values for DistanceFromBottom
-    if distance_from_bottom > max_distance_from_bottom:
-        max_distance_from_bottom = distance_from_bottom
-    if distance_from_bottom < min_distance_from_bottom:
-        min_distance_from_bottom = distance_from_bottom
+    # Update max and min values for DistanceFromBottom if the distance is valid
+    if distance_from_bottom != -1:
+        if distance_from_bottom > max_distance_from_bottom:
+            max_distance_from_bottom = distance_from_bottom
+        if distance_from_bottom < min_distance_from_bottom:
+            min_distance_from_bottom = distance_from_bottom
+
+# Check if no valid distances were found and set to None if so
+if max_distance_from_top == float('-inf'):
+    max_distance_from_top = None
+if min_distance_from_top == float('inf'):
+    min_distance_from_top = None
+if max_distance_from_bottom == float('-inf'):
+    max_distance_from_bottom = None
+if min_distance_from_bottom == float('inf'):
+    min_distance_from_bottom = None
 
 print(f"Max Distance From Top: {max_distance_from_top}")
 print(f"Min Distance From Top: {min_distance_from_top}")
