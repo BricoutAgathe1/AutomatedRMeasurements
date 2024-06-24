@@ -240,14 +240,17 @@ with torch.no_grad():
                     'DistanceFromBottom': -1  # Indicate no mask found
                 })
 
+
+print("--- Pseudolabeling complete: %s seconds ---" % (time.time() - start_time))
+
 # Convert torch tensors to Python types
 distances_serializable = []
 for entry in distances:
-    # Convert torch tensors to Python int or float
+    # Convert to Python int
     entry_serializable = {
         'MaskFile': entry['MaskFile'],
-        'DistanceFromTop': entry['DistanceFromTop'] if entry['DistanceFromTop'] != -1 else 'No Mask Found',
-        'DistanceFromBottom': entry['DistanceFromBottom'] if entry['DistanceFromBottom'] != -1 else 'No Mask Found'
+        'DistanceFromTop': int(entry['DistanceFromTop']),  # Convert to Python int
+        'DistanceFromBottom': int(entry['DistanceFromBottom'])  # Convert to Python int
     }
     distances_serializable.append(entry_serializable)
 
@@ -264,20 +267,32 @@ min_distance_from_bottom = float('inf')
 
 # Iterate through the distances list
 for entry in distances:
-    distance_from_top = entry['DistanceFromTop'].item()  # Convert tensor to Python int
-    distance_from_bottom = entry['DistanceFromBottom'].item()  # Convert tensor to Python int
+    distance_from_top = entry['DistanceFromTop']
+    distance_from_bottom = entry['DistanceFromBottom']
 
-    # Update max and min values for DistanceFromTop
-    if distance_from_top > max_distance_from_top:
-        max_distance_from_top = distance_from_top
-    if distance_from_top < min_distance_from_top:
-        min_distance_from_top = distance_from_top
+    # Update max and min values for DistanceFromTop if the distance is valid
+    if distance_from_top != -1:
+        if distance_from_top > max_distance_from_top:
+            max_distance_from_top = distance_from_top
+        if distance_from_top < min_distance_from_top:
+            min_distance_from_top = distance_from_top
 
-    # Update max and min values for DistanceFromBottom
-    if distance_from_bottom > max_distance_from_bottom:
-        max_distance_from_bottom = distance_from_bottom
-    if distance_from_bottom < min_distance_from_bottom:
-        min_distance_from_bottom = distance_from_bottom
+    # Update max and min values for DistanceFromBottom if the distance is valid
+    if distance_from_bottom != -1:
+        if distance_from_bottom > max_distance_from_bottom:
+            max_distance_from_bottom = distance_from_bottom
+        if distance_from_bottom < min_distance_from_bottom:
+            min_distance_from_bottom = distance_from_bottom
+
+# Check if no valid distances were found and set to None if so
+if max_distance_from_top == float('-inf'):
+    max_distance_from_top = None
+if min_distance_from_top == float('inf'):
+    min_distance_from_top = None
+if max_distance_from_bottom == float('-inf'):
+    max_distance_from_bottom = None
+if min_distance_from_bottom == float('inf'):
+    min_distance_from_bottom = None
 
 print(f"Max Distance From Top: {max_distance_from_top}")
 print(f"Min Distance From Top: {min_distance_from_top}")
