@@ -232,6 +232,13 @@ with torch.no_grad():
                     print(f"No mask found or mask is empty for {pseudolabel_path}")
             else:
                 print(f"Warning: Empty pseudolabel for image {image_name}")
+                pseudolabel_path = os.path.join(pseudolabel_dir, image_name.replace('.jpg', '_pseudolabel.png'))
+                pseudolabel_img.save(pseudolabel_path)
+                distances.append({
+                    'MaskFile': pseudolabel_path,
+                    'DistanceFromTop': -1,  # Indicate no mask found
+                    'DistanceFromBottom': -1  # Indicate no mask found
+                })
 
 # Convert torch tensors to Python types
 distances_serializable = []
