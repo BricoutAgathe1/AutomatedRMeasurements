@@ -246,8 +246,8 @@ for entry in distances:
     # Convert torch tensors to Python int or float
     entry_serializable = {
         'MaskFile': entry['MaskFile'],
-        'DistanceFromTop': entry['DistanceFromTop'].item(),  # Convert torch int64 to Python int
-        'DistanceFromBottom': entry['DistanceFromBottom'].item()  # Convert torch int64 to Python int
+        'DistanceFromTop': entry['DistanceFromTop'] if entry['DistanceFromTop'] != -1 else 'No Mask Found',
+        'DistanceFromBottom': entry['DistanceFromBottom'] if entry['DistanceFromBottom'] != -1 else 'No Mask Found'
     }
     distances_serializable.append(entry_serializable)
 
