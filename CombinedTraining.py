@@ -56,11 +56,18 @@ mask_transforms = transforms.Compose([
 ])
 
 # Paths to datasets
-train_image_dir = 'data/train'
-train_mask_dir = 'data/train_masks'
-val_image_dir = 'data/val'
-val_mask_dir = 'data/val_masks'
-unlabeled_train_image_dir = 'data/train_unlabeled'
+# train_image_dir = 'data/train'
+# train_mask_dir = 'data/train_masks'
+# val_image_dir = 'data/val'
+# val_mask_dir = 'data/val_masks'
+# unlabeled_train_image_dir = 'data/train_unlabeled'
+
+# Paths to cropped datasets
+train_image_dir = 'data_cropped/train_cropped'
+train_mask_dir = 'data_cropped/train_cropped'
+val_image_dir = 'data_cropped/val_cropped'
+val_mask_dir = 'data_cropped/val_cropped'
+unlabeled_train_image_dir = 'data_cropped/train_unlabelled_cropped'
 
 # Initialize datasets
 train_dataset = UltrasoundDataset(train_image_dir, train_mask_dir, image_transforms)
@@ -125,7 +132,7 @@ class ResNetSegmentation(nn.Module):
 
 # Example usage:
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = ResNetSegmentation(backbone='resnet152', num_classes=2)  # Choose backbone as needed
+model = ResNetSegmentation(backbone='resnet18', num_classes=2)  # Choose backbone as needed
 model = model.to(device)
 
 criterion = nn.CrossEntropyLoss()
@@ -180,8 +187,10 @@ class PseudolabeledUltrasoundDataset(Dataset):
         return image, mask
 
 
-pseudolabeled_image_dir = 'data/train_unlabeled'
-pseudolabeled_mask_dir = 'data/train_pseudolabels'
+# pseudolabeled_image_dir = 'data/train_unlabeled'
+# pseudolabeled_mask_dir = 'data/train_pseudolabels'
+pseudolabeled_image_dir = 'data_cropped/train_unlabelled_cropped'
+pseudolabeled_mask_dir = 'data_cropped/train_pseudolabels_cropped'
 pseudolabeled_dataset = PseudolabeledUltrasoundDataset(pseudolabeled_image_dir, pseudolabeled_mask_dir,
                                                        image_transforms)
 
@@ -189,7 +198,7 @@ combined_dataset = CombinedUltrasoundDataset(train_dataset, pseudolabeled_datase
 combined_loader = DataLoader(combined_dataset, batch_size=batch_size, shuffle=True)
 
 # Continue training with combined dataset
-num_epochs = 20
+num_epochs = 5
 best_val_loss = float('inf')
 for epoch in range(num_epochs):
     model.train()
