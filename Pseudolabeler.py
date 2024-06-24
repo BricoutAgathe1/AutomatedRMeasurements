@@ -56,11 +56,18 @@ mask_transforms = transforms.Compose([
 ])
 
 # Paths to datasets
-train_image_dir = 'data/train'
-train_mask_dir = 'data/train_masks'
-val_image_dir = 'data/val'
-val_mask_dir = 'data/val_masks'
-unlabeled_train_image_dir = 'data/train_unlabeled'
+# train_image_dir = 'data/train'
+# train_mask_dir = 'data/train_masks'
+# val_image_dir = 'data/val'
+# val_mask_dir = 'data/val_masks'
+# unlabeled_train_image_dir = 'data/train_unlabeled'
+
+# Paths to cropped datasets
+train_image_dir = 'data_cropped/train_cropped'
+train_mask_dir = 'data_cropped/train_cropped'
+val_image_dir = 'data_cropped/val_cropped'
+val_mask_dir = 'data_cropped/val_cropped'
+unlabeled_train_image_dir = 'data_cropped/train_unlabelled_cropped'
 
 # Initialize datasets
 train_dataset = UltrasoundDataset(train_image_dir, train_mask_dir, image_transforms)
@@ -163,11 +170,13 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-unlabeled_image_dir = 'data/train_unlabeled'
+# unlabeled_image_dir = 'data/train_unlabeled'
+unlabeled_image_dir = 'data_cropped/train_unlabelled_cropped'
 unlabeled_dataset = UnlabeledUltrasoundDataset(unlabeled_image_dir, transform)
 unlabeled_dataloader = DataLoader(unlabeled_dataset, batch_size=8, shuffle=False)
 
-pseudolabel_dir = 'data/train_pseudolabels'
+# pseudolabel_dir = 'data/train_pseudolabels'
+pseudolabel_dir = 'data_cropped/train_pseudolabels_cropped'
 os.makedirs(pseudolabel_dir, exist_ok=True)
 
 
@@ -201,7 +210,7 @@ with torch.no_grad():
         for pseudolabel, image_name in zip(pseudolabels, image_names):
             pseudolabel_np = pseudolabel.cpu().numpy().astype(np.uint8)
             pseudolabel_img = Image.fromarray(pseudolabel_np * 255)  # Scale to 255
-            pseudolabel_img = pseudolabel_img.resize((1280, 720), Image.NEAREST)
+            # pseudolabel_img = pseudolabel_img.resize((1280, 720), Image.NEAREST) # uncomment if not using cropped data
 
             if np.any(pseudolabel_np):
                 pseudolabel_path = os.path.join(pseudolabel_dir, image_name.replace('.jpg', '_pseudolabel.png'))
