@@ -57,11 +57,18 @@ mask_transforms = transforms.Compose([
 ])
 
 # Paths to datasets
-train_image_dir = 'data/train'
-train_mask_dir = 'data/train_masks'
-val_image_dir = 'data/val'
-val_mask_dir = 'data/val_masks'
-unlabeled_train_image_dir = 'data/train_unlabeled'
+# train_image_dir = 'data/train'
+# train_mask_dir = 'data/train_masks'
+# val_image_dir = 'data/val'
+# val_mask_dir = 'data/val_masks'
+# unlabeled_train_image_dir = 'data/train_unlabeled'
+
+# Paths to cropped datasets
+train_image_dir = 'data_cropped/train_cropped'
+train_mask_dir = 'data_cropped/train_cropped'
+val_image_dir = 'data_cropped/val_cropped'
+val_mask_dir = 'data_cropped/val_cropped'
+unlabeled_train_image_dir = 'data_cropped/train_unlabelled_cropped'
 
 # Initialize datasets
 train_dataset = UltrasoundDataset(train_image_dir, train_mask_dir, image_transforms)
