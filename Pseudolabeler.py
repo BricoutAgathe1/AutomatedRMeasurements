@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, models
-from PIL import Image
+from PIL import Image, ImageDraw, ImageTk
 import matplotlib.pyplot as plt
 import time
 import json
@@ -182,21 +182,21 @@ os.makedirs(pseudolabel_dir, exist_ok=True)
 
 
 def extract_top_bottom_positions(mask):
-    # convert to grayscale if needed
+    # Convert to grayscale if needed
     if len(mask.shape) > 2:
         mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 
-    # find non-zero rows when mask is present
+    # Find non-zero rows where mask is present
     non_zero_rows = np.where(mask > 0)[0]
 
     if len(non_zero_rows) > 0:
-        # first non-zero row
+        # First non-zero row
         top_position = non_zero_rows[0]
-        # last non-zero row
+        # Last non-zero row
         bottom_position = non_zero_rows[-1]
         return top_position, bottom_position
     else:
-        return None, None # no mask found
+        return None, None  # No mask found
 
 
 distances = []
@@ -222,7 +222,7 @@ with torch.no_grad():
                 if top_pos is not None and bottom_pos is not None:
                     image_height = pseudolabel_np.shape[0]
                     distance_from_top = top_pos
-                    distance_from_bottom = image_height - bottom_pos - 1
+                    distance_from_bottom = bottom_pos
 
                     distances.append({
                         'MaskFile': pseudolabel_path,
@@ -245,6 +245,8 @@ with torch.no_grad():
 print("--- Pseudolabeling complete: %s seconds ---" % (time.time() - start_time))
 
 
+# Class for distance input
+# Class for distance input
 class DistanceInputApp:
     def __init__(self, root, image):
         self.root = root
@@ -269,6 +271,7 @@ class DistanceInputApp:
             self.points.append((x, y))
             if len(self.points) == 2:
                 self.draw_line()
+                self.distance_entry.focus()
 
     def draw_line(self):
         x1, y1 = self.points[0]
@@ -276,11 +279,18 @@ class DistanceInputApp:
         self.canvas.create_line(x1, y1, x2, y2, fill="red")
 
     def on_submit(self):
-        self.real_world_distance = float(self.distance_entry.get())
-        self.root.quit()
+        try:
+            self.real_world_distance = float(self.distance_entry.get())
+            self.root.quit()
+        except ValueError:
+            print("Please enter a valid number.")
+
 
 def get_distance_conversion_factor(image_path):
+    # Open and resize the image to 224x224
     image = Image.open(image_path).convert("RGB")
+    image = image.resize((224, 224), Image.BILINEAR)  # Resize image to 224x224
+
     root = Tk()
     app = DistanceInputApp(root, image)
     root.mainloop()
@@ -292,6 +302,7 @@ def get_distance_conversion_factor(image_path):
         return conversion_factor
     else:
         raise ValueError("Line drawing or distance input was not completed properly.")
+
 
 # Define the conversion function
 def convert_distances(distances, conversion_factor):
@@ -317,7 +328,6 @@ for entry in distances:
 with open('distances.json', 'w') as f:
     json.dump(distances_serializable, f)
 
-print("--- Pseudolabeling complete: %s seconds ---" % (time.time() - start_time))
 
 # Initialize variables to store max and min values
 max_distance_from_top = float('-inf')
@@ -401,15 +411,8 @@ for entry in distances_mm:
         if distance_from_bottom < min_distance_from_bottom:
             min_distance_from_bottom = distance_from_bottom
 
-# Initialize variables to store total width and count of masks
-total_width_mm = 0
-num_masks = 0
 
-# Angle of pipes to the vertical
-angle_deg = 40
-angle_rad = np.radians(angle_deg)
-
-# Iterate through the distances list and calculate the width of each mask
+# Iterate through the distances list
 for entry in distances:
     distance_from_top = entry['DistanceFromTop']
     distance_from_bottom = entry['DistanceFromBottom']
@@ -428,24 +431,6 @@ for entry in distances:
         if distance_from_bottom < min_distance_from_bottom:
             min_distance_from_bottom = distance_from_bottom
 
-    # Load the mask image
-    mask_path = entry['mask_path']
-    mask = Image.open(mask_path).convert("L")
-    mask_np = np.array(mask)
-
-    # Calculate the width of the mask in pixels
-    horizontal_sum = np.sum(mask_np, axis=0)
-    width_pixels = np.sum(horizontal_sum > 0)
-
-    # Adjust the width for the angle
-    adjusted_width_pixels = width_pixels / np.cos(angle_rad)
-
-    # Convert the width to mm
-    width_mm = adjusted_width_pixels * conversion_factor
-
-    # Update the total width and mask count
-    total_width_mm += width_mm
-    num_masks += 1
 
 # Check if no valid distances were found and set to None if so
 if max_distance_from_top == float('-inf'):
@@ -457,11 +442,8 @@ if max_distance_from_bottom == float('-inf'):
 if min_distance_from_bottom == float('inf'):
     min_distance_from_bottom = None
 
-# Calculate the mean width
-mean_width_mm = total_width_mm / num_masks if num_masks > 0 else None
 
 print(f"Max Distance From Top: {max_distance_from_top} (mm)")
 print(f"Min Distance From Top: {min_distance_from_top} (mm)")
 print(f"Max Distance From Bottom: {max_distance_from_bottom} (mm)")
 print(f"Min Distance From Bottom: {min_distance_from_bottom} (mm)")
-print(f"Mean Width: {mean_width_mm} mm")
