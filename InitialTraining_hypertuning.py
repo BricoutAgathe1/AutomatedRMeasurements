@@ -55,6 +55,7 @@ class UltrasoundDataset(Dataset):
 
         return image, mask
 
+
 # Define image and mask transformations
 image_transforms = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -67,11 +68,18 @@ mask_transforms = transforms.Compose([
 ])
 
 # Paths to datasets
-train_image_dir = 'data/train'
-train_mask_dir = 'data/train_masks'
-val_image_dir = 'data/val'
-val_mask_dir = 'data/val_masks'
-unlabeled_train_image_dir = 'data/train_unlabeled'
+# train_image_dir = 'data/train'
+# train_mask_dir = 'data/train_masks'
+# val_image_dir = 'data/val'
+# val_mask_dir = 'data/val_masks'
+# unlabeled_train_image_dir = 'data/train_unlabeled'
+
+# Paths to cropped datasets
+train_image_dir = 'data_cropped/train_cropped'
+train_mask_dir = 'data_cropped/train_cropped'
+val_image_dir = 'data_cropped/val_cropped'
+val_mask_dir = 'data_cropped/val_cropped'
+unlabeled_train_image_dir = 'data_cropped/train_unlabelled_cropped'
 
 # Initialize datasets
 train_dataset = UltrasoundDataset(train_image_dir, train_mask_dir, image_transforms)
@@ -155,7 +163,7 @@ class ResNetSegmentation(nn.Module):
 
 # Training loop with hyperparameter tuning
 def train_model(params, train_loader, val_loader, device):
-    model = ResNetSegmentation(backbone='resnet34', num_classes=2).to(device)
+    model = ResNetSegmentation(backbone='resnet18', num_classes=2).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=params['learning_rate'])
 
