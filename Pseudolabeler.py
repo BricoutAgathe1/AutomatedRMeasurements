@@ -401,6 +401,52 @@ for entry in distances_mm:
         if distance_from_bottom < min_distance_from_bottom:
             min_distance_from_bottom = distance_from_bottom
 
+# Initialize variables to store total width and count of masks
+total_width_mm = 0
+num_masks = 0
+
+# Angle of pipes to the vertical
+angle_deg = 40
+angle_rad = np.radians(angle_deg)
+
+# Iterate through the distances list and calculate the width of each mask
+for entry in distances:
+    distance_from_top = entry['DistanceFromTop']
+    distance_from_bottom = entry['DistanceFromBottom']
+
+    # Update max and min values for DistanceFromTop if the distance is valid
+    if distance_from_top != -1:
+        if distance_from_top > max_distance_from_top:
+            max_distance_from_top = distance_from_top
+        if distance_from_top < min_distance_from_top:
+            min_distance_from_top = distance_from_top
+
+    # Update max and min values for DistanceFromBottom if the distance is valid
+    if distance_from_bottom != -1:
+        if distance_from_bottom > max_distance_from_bottom:
+            max_distance_from_bottom = distance_from_bottom
+        if distance_from_bottom < min_distance_from_bottom:
+            min_distance_from_bottom = distance_from_bottom
+
+    # Load the mask image
+    mask_path = entry['mask_path']
+    mask = Image.open(mask_path).convert("L")
+    mask_np = np.array(mask)
+
+    # Calculate the width of the mask in pixels
+    horizontal_sum = np.sum(mask_np, axis=0)
+    width_pixels = np.sum(horizontal_sum > 0)
+
+    # Adjust the width for the angle
+    adjusted_width_pixels = width_pixels / np.cos(angle_rad)
+
+    # Convert the width to mm
+    width_mm = adjusted_width_pixels * conversion_factor
+
+    # Update the total width and mask count
+    total_width_mm += width_mm
+    num_masks += 1
+
 # Check if no valid distances were found and set to None if so
 if max_distance_from_top == float('-inf'):
     max_distance_from_top = None
@@ -411,7 +457,11 @@ if max_distance_from_bottom == float('-inf'):
 if min_distance_from_bottom == float('inf'):
     min_distance_from_bottom = None
 
+# Calculate the mean width
+mean_width_mm = total_width_mm / num_masks if num_masks > 0 else None
+
 print(f"Max Distance From Top: {max_distance_from_top} (mm)")
 print(f"Min Distance From Top: {min_distance_from_top} (mm)")
 print(f"Max Distance From Bottom: {max_distance_from_bottom} (mm)")
 print(f"Min Distance From Bottom: {min_distance_from_bottom} (mm)")
+print(f"Mean Width: {mean_width_mm} mm")
