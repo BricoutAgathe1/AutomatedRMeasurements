@@ -10,6 +10,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import time
 import json
+from tkinter import Tk, Label, Canvas, Entry, Button
 
 start_time = time.time()
 
@@ -243,6 +244,65 @@ with torch.no_grad():
 
 print("--- Pseudolabeling complete: %s seconds ---" % (time.time() - start_time))
 
+
+class DistanceInputApp:
+    def __init__(self, root, image):
+        self.root = root
+        self.image = image
+        self.canvas = Canvas(root, width=image.width, height=image.height)
+        self.canvas.pack()
+        self.image_tk = ImageTk.PhotoImage(image)
+        self.canvas.create_image(0, 0, anchor='nw', image=self.image_tk)
+        self.canvas.bind("<Button-1>", self.on_click)
+        self.points = []
+        self.distance_entry = Entry(root)
+        self.distance_entry.pack()
+        self.label = Label(root, text="Enter the real-world distance in mm for the drawn line:")
+        self.label.pack()
+        self.button = Button(root, text="Submit", command=self.on_submit)
+        self.button.pack()
+        self.real_world_distance = None
+
+    def on_click(self, event):
+        if len(self.points) < 2:
+            x, y = event.x, event.y
+            self.points.append((x, y))
+            if len(self.points) == 2:
+                self.draw_line()
+
+    def draw_line(self):
+        x1, y1 = self.points[0]
+        x2, y2 = self.points[1]
+        self.canvas.create_line(x1, y1, x2, y2, fill="red")
+
+    def on_submit(self):
+        self.real_world_distance = float(self.distance_entry.get())
+        self.root.quit()
+
+def get_distance_conversion_factor(image_path):
+    image = Image.open(image_path).convert("RGB")
+    root = Tk()
+    app = DistanceInputApp(root, image)
+    root.mainloop()
+
+    if len(app.points) == 2 and app.real_world_distance is not None:
+        (x1, y1), (x2, y2) = app.points
+        pixel_distance = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+        conversion_factor = app.real_world_distance / pixel_distance
+        return conversion_factor
+    else:
+        raise ValueError("Line drawing or distance input was not completed properly.")
+
+# Define the conversion function
+def convert_distances(distances, conversion_factor):
+    for entry in distances:
+        if entry['DistanceFromTop'] != -1:
+            entry['DistanceFromTop'] *= conversion_factor
+        if entry['DistanceFromBottom'] != -1:
+            entry['DistanceFromBottom'] *= conversion_factor
+    return distances
+
+
 # Convert torch tensors to Python types
 distances_serializable = []
 for entry in distances:
@@ -294,7 +354,64 @@ if max_distance_from_bottom == float('-inf'):
 if min_distance_from_bottom == float('inf'):
     min_distance_from_bottom = None
 
-print(f"Max Distance From Top: {max_distance_from_top}")
-print(f"Min Distance From Top: {min_distance_from_top}")
-print(f"Max Distance From Bottom: {max_distance_from_bottom}")
-print(f"Min Distance From Bottom: {min_distance_from_bottom}")
+print(f"Max Distance From Top: {max_distance_from_top} (pixels)")
+print(f"Min Distance From Top: {min_distance_from_top} (pixels)")
+print(f"Max Distance From Bottom: {max_distance_from_bottom} (pixels)")
+print(f"Min Distance From Bottom: {min_distance_from_bottom} (pixels)")
+
+# Get the first image path from the training dataset
+first_image_path = os.path.join(train_image_dir, train_dataset.image_filenames[0])
+
+# Get the pixel-to-mm conversion factor
+conversion_factor = get_distance_conversion_factor(first_image_path)
+
+# Load the distances data (assuming it's a list of dictionaries)
+with open('distances.json', 'r') as f:
+    distances = json.load(f)
+
+# Convert distances from pixels to mm
+distances_mm = convert_distances(distances, conversion_factor)
+
+# Save the converted distances back to the JSON file
+with open('distances_mm.json', 'w') as f:
+    json.dump(distances_mm, f)
+
+# Initialize variables to store max and min values
+max_distance_from_top = float('-inf')
+min_distance_from_top = float('inf')
+max_distance_from_bottom = float('-inf')
+min_distance_from_bottom = float('inf')
+
+# Iterate through the distances list
+for entry in distances_mm:
+    distance_from_top = entry['DistanceFromTop']
+    distance_from_bottom = entry['DistanceFromBottom']
+
+    # Update max and min values for DistanceFromTop if the distance is valid
+    if distance_from_top != -1:
+        if distance_from_top > max_distance_from_top:
+            max_distance_from_top = distance_from_top
+        if distance_from_top < min_distance_from_top:
+            min_distance_from_top = distance_from_top
+
+    # Update max and min values for DistanceFromBottom if the distance is valid
+    if distance_from_bottom != -1:
+        if distance_from_bottom > max_distance_from_bottom:
+            max_distance_from_bottom = distance_from_bottom
+        if distance_from_bottom < min_distance_from_bottom:
+            min_distance_from_bottom = distance_from_bottom
+
+# Check if no valid distances were found and set to None if so
+if max_distance_from_top == float('-inf'):
+    max_distance_from_top = None
+if min_distance_from_top == float('inf'):
+    min_distance_from_top = None
+if max_distance_from_bottom == float('-inf'):
+    max_distance_from_bottom = None
+if min_distance_from_bottom == float('inf'):
+    min_distance_from_bottom = None
+
+print(f"Max Distance From Top: {max_distance_from_top} (mm)")
+print(f"Min Distance From Top: {min_distance_from_top} (mm)")
+print(f"Max Distance From Bottom: {max_distance_from_bottom} (mm)")
+print(f"Min Distance From Bottom: {min_distance_from_bottom} (mm)")
