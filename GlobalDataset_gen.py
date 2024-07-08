@@ -29,8 +29,18 @@ def shuffle_and_split(frames_dir, train_dir, val_dir, test_dir, train_ratio=0.7,
     frame_files = os.listdir(frames_dir)
     total_frames = len(frame_files)
 
+    print(f"Total frames before shuffling: {total_frames}")
+
     # Shuffle the frame files
     random.shuffle(frame_files)
+
+    print(f"First 5 frames after shuffling: {frame_files[:5]}")
+
+    # Rename the files to ensure shuffling is permanent
+    for i, frame in enumerate(frame_files):
+        new_name = f"shuffled_frame{i}.jpg"
+        os.rename(os.path.join(frames_dir, frame), os.path.join(frames_dir, new_name))
+        frame_files[i] = new_name
 
     # Calculate split indices
     train_idx = int(train_ratio * total_frames)
@@ -43,6 +53,7 @@ def shuffle_and_split(frames_dir, train_dir, val_dir, test_dir, train_ratio=0.7,
 
     # Copy frames to respective directories
     def copy_frames(frames, dest_dir):
+        create_dir(dest_dir)
         for frame in frames:
             src_path = os.path.join(frames_dir, frame)
             dest_path = os.path.join(dest_dir, frame)
@@ -52,7 +63,6 @@ def shuffle_and_split(frames_dir, train_dir, val_dir, test_dir, train_ratio=0.7,
     copy_frames(val_frames, val_dir)
     copy_frames(test_frames, test_dir)
 
-    print(f"Total frames: {total_frames}")
     print(f"Training frames: {len(train_frames)}")
     print(f"Validation frames: {len(val_frames)}")
     print(f"Testing frames: {len(test_frames)}")
