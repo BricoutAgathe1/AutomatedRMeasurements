@@ -1,18 +1,20 @@
 import json
 import os
 from PIL import Image, ImageDraw
+import matplotlib.pyplot as plt
 
 # Path to the VIA annotations file
-annotations_file = 'val_annotations_json.json'
+annotations_file = 'GD_train_masks.json'
 
 # Directory to save mask images
-masks_dir = 'data/val_masks'
+masks_dir = 'Global_Dataset/train/cropped_images'
 os.makedirs(masks_dir, exist_ok=True)
 
 # Load annotations
 with open(annotations_file, 'r') as f:
     annotations = json.load(f)
 
+# Debugging: Print the first few annotations
 print(json.dumps(list(annotations.items())[:5], indent=2))
 
 # Iterate through the annotations and create masks
@@ -20,11 +22,11 @@ for key, file_annotations in annotations.items():
     filename = file_annotations['filename']
     width = file_annotations.get('width', 0)  # Default to 0 if width is not present
     height = file_annotations.get('height', 0)  # Default to 0 if height is not present
-    regions = file_annotations.get('regions', [])
+    regions = file_annotations.get('regions', {})
 
     if width == 0 or height == 0:
         # Load image to get its dimensions if not available in annotations
-        image_path = os.path.join('data/val', filename)
+        image_path = os.path.join('Global_Dataset/train/cropped_images', filename)
         with Image.open(image_path) as img:
             width, height = img.size
 
@@ -34,7 +36,8 @@ for key, file_annotations in annotations.items():
     mask = Image.new('L', (width, height), 0)
     draw = ImageDraw.Draw(mask)
 
-    for region in regions:
+    for region_id, region in regions.items():
+        print(type(region), region)  # Debugging: Check type and content of region
         shape_attributes = region['shape_attributes']
         if shape_attributes['name'] == 'polygon':
             points = list(zip(shape_attributes['all_points_x'], shape_attributes['all_points_y']))
@@ -56,17 +59,15 @@ for key, file_annotations in annotations.items():
 
 print("Masks generated successfully.")
 
-import matplotlib.pyplot as plt
-
 # Visualize the original image and its mask
 for key, file_annotations in annotations.items():
     filename = file_annotations['filename']
-    regions = file_annotations.get('regions', [])
+    regions = file_annotations.get('regions', {})
 
     if not regions:
         continue
 
-    image_path = os.path.join('data/train', filename)
+    image_path = os.path.join('Global_Dataset/train/cropped_images', filename)
     mask_path = os.path.join(masks_dir, f"{os.path.splitext(filename)[0]}_mask.png")
 
     image = Image.open(image_path).convert("RGB")
