@@ -94,8 +94,8 @@ def process_videos(videos_dir, base_dir):
     shuffle_and_split(frames_dir, train_dir, val_dir, test_dir)
 
 # Example usage:
-videos_dir = "Lq E9 9L - cropped"  # Directory containing the 14 videos
-base_dir = 'Global_Dataset'  # Base directory for output
+videos_dir = "../Datasets/IMV EasiScanGO/EASI-SCAN_EnhanceON/12cm mode"  # Directory containing the 14 videos
+base_dir = '../Datasets/Testing/Global_Datasets_IMV/EnON_12cm'  # Base directory for output
 process_videos(videos_dir, base_dir)
 
 print("Frames extraction and splitting complete.")

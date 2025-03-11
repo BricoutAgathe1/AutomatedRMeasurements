@@ -4,10 +4,10 @@ from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
 # Path to the VIA annotations file
-annotations_file = 'GD_train_masks.json'
+annotations_file = '../Annotations/IMV-ESG_json.json'
 
 # Directory to save mask images
-masks_dir = 'Global_Dataset/train/cropped_images'
+masks_dir = '../Datasets/Testing/Global_Datasets_IMV/ToLabel'
 os.makedirs(masks_dir, exist_ok=True)
 
 # Load annotations
@@ -26,7 +26,7 @@ for key, file_annotations in annotations.items():
 
     if width == 0 or height == 0:
         # Load image to get its dimensions if not available in annotations
-        image_path = os.path.join('Global_Dataset/train/cropped_images', filename)
+        image_path = os.path.join('../Datasets/Testing/Global_Datasets_IMV/ToLabel', filename)
         with Image.open(image_path) as img:
             width, height = img.size
 
@@ -36,7 +36,7 @@ for key, file_annotations in annotations.items():
     mask = Image.new('L', (width, height), 0)
     draw = ImageDraw.Draw(mask)
 
-    for region_id, region in regions.items():
+    for region in regions:
         print(type(region), region)  # Debugging: Check type and content of region
         shape_attributes = region['shape_attributes']
         if shape_attributes['name'] == 'polygon':
@@ -67,7 +67,7 @@ for key, file_annotations in annotations.items():
     if not regions:
         continue
 
-    image_path = os.path.join('Global_Dataset/train/cropped_images', filename)
+    image_path = os.path.join('../Datasets/Testing/Global_Datasets_IMV/ToLabel', filename)
     mask_path = os.path.join(masks_dir, f"{os.path.splitext(filename)[0]}_mask.png")
 
     image = Image.open(image_path).convert("RGB")

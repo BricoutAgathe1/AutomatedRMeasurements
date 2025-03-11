@@ -3,25 +3,16 @@ import cv2
 import numpy as np
 import torch
 import torch.nn as nn
-from torchvision import models, transforms
+from torchvision import transforms
 from torch.utils.data import DataLoader, Dataset
-from torch.backends import cudnn
 from multiprocessing import Pool
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from PIL import Image, ImageTk
 from tkinter import Tk, Canvas, Entry, Label, Button, filedialog
 import json
 from tqdm import tqdm
 import time
 
-import cProfile
-import pstats
-
-
 start_time = time.time()
-
-# Enable cuDNN auto-tuning for better performance
-cudnn.benchmark = True
 
 
 # UNet Model Definition
@@ -86,8 +77,6 @@ class UNet(nn.Module):
 
         return self.final_conv(dec1)
 
-
-## Frame extraction & cropping/conversion factor extraction ##
 
 # Function to extract frames from a video
 def extract_frames(video_path, output_dir):
@@ -185,168 +174,56 @@ class ImageDataset(Dataset):
         return img, img_path
 
 
-def save_image(image_tensor, save_path):
-    image = Image.fromarray(image_tensor.numpy())
-    image.save(save_path)
-
-
-def save_images_parallel(image_tensors, save_paths):
-    with ThreadPoolExecutor(max_workers=4) as executor:  # Adjust max_workers based on system I/O
-        executor.map(save_image, image_tensors, save_paths)
-
-
-# Process masks and calculate distances
-def process_masks(mask_files, threshold):
-    results = []
-    max_bottom_distance = float('-inf')
-    min_top_distance = float('inf')
-
-    for mask_path in mask_files:
-        with Image.open(mask_path) as img:
-            mask = np.array(img)
-
-        top_position, bottom_position = extract_top_bottom_positions(mask)
-
-        if top_position is not None and bottom_position is not None:
-            results.append({
-                "MaskFile": mask_path,
-                "DistanceFromTop": top_position,
-                "DistanceFromBottom": bottom_position,
-            })
-            max_bottom_distance = max(max_bottom_distance, bottom_position)
-            min_top_distance = min(min_top_distance, top_position)
-        else:
-            results.append({
-                "MaskFile": mask_path,
-                "DistanceFromTop": -1,
-                "DistanceFromBottom": -1,
-            })
-
-    return results, max_bottom_distance, min_top_distance
-
-
-def process_batch_with_threshold(args):
-    filenames, masks_dir, video_folder, threshold = args
-    results = []
-    max_bottom_distance = float('-inf')
-    min_top_distance = float('inf')
-
-    for filename in filenames:
-        mask_path = os.path.join(masks_dir, filename)
-
-        # Open and process image efficiently
-        with Image.open(mask_path) as img:
-            mask = np.array(img)
-
-        # Extract positions
-        top_position, bottom_position = extract_top_bottom_positions(mask)
-
-        if top_position is not None and bottom_position is not None:
-            results.append({
-                "Frame": filename,
-                "DistanceFromTop": top_position,
-                "DistanceFromBottom": bottom_position,
-            })
-
-            if "bot" in video_folder.lower():
-                if max_bottom_distance == float('-inf'):
-                    max_bottom_distance = bottom_position
-                elif abs(bottom_position - max_bottom_distance) <= threshold * max_bottom_distance:
-                    max_bottom_distance = max(max_bottom_distance, bottom_position)
-
-            if "top" in video_folder.lower():
-                if min_top_distance == float('inf'):
-                    min_top_distance = top_position
-                elif abs(top_position - min_top_distance) <= threshold * min_top_distance:
-                    min_top_distance = min(min_top_distance, top_position)
-        else:
-            results.append({
-                "Frame": filename,
-                "DistanceFromTop": -1,
-                "DistanceFromBottom": -1,
-            })
-
-    return results, max_bottom_distance, min_top_distance
-
-
-def process_batch_with_args(args):
-    """
-    Wrapper to unpack arguments and call `process_batch`.
-    """
-    batch_paths, output_dir, model, device, transform = args
-    return process_batch(batch_paths, output_dir, model, device, transform)
-
-
-# Move this function to the top level of your script
-def process_batch(batch_paths, output_dir, model, device, transform):
-    """
-    Processes a batch of images, performs segmentation, and saves the masks.
-    """
-    results = []
-    for img_path in batch_paths:
-        # Load and preprocess image
-        with Image.open(img_path) as img:
-            img = img.convert('L')  # Convert to grayscale (1 channel)
-            img_tensor = transform(img).unsqueeze(0).to(device)
-
-        # Perform inference
-        with torch.no_grad():
-            output = model(img_tensor)
-            prediction = torch.argmax(output, dim=1).cpu().numpy().squeeze().astype(np.uint8) * 255
-
-        # Postprocess mask and save
-        processed_mask = keep_largest_connected_component(prediction)
-        save_path = os.path.join(output_dir, os.path.basename(img_path).replace('.jpg', '_mask.png'))
-        Image.fromarray(processed_mask).save(save_path)
-        results.append(save_path)
-
-    return results
-
-
-def process_masks_parallel(mask_files, masks_dir, video_folder, threshold):
-    batch_size = 10
-    batches = [mask_files[i:i + batch_size] for i in range(0, len(mask_files), batch_size)]
-    args = [(batch, masks_dir, video_folder, threshold) for batch in batches]
-
-    # Shared variables for aggregation
-    max_bottom_distance = float('-inf')
-    min_top_distance = float('inf')
-    all_results = []
-
-    # Parallel processing using ProcessPoolExecutor
-    with ProcessPoolExecutor() as executor:
-        results = executor.map(process_batch_with_threshold, args)
-
-        for batch_results, batch_max_bottom, batch_min_top in results:
-            all_results.extend(batch_results)
-
-            # Aggregate max/min distances across batches
-            max_bottom_distance = max(max_bottom_distance, batch_max_bottom)
-            min_top_distance = min(min_top_distance, batch_min_top)
-
-    return all_results, max_bottom_distance, min_top_distance
-
-
-def segment_images_batch_parallel(input_dir, output_dir, model, device, transform, batch_size=10):
-    """
-    Segments images in parallel using batches.
-    """
-    # Prepare paths
+def segment_images_batch(input_dir, output_dir, model, device, transform, batch_size=16):
     os.makedirs(output_dir, exist_ok=True)
+    model.eval()
+
     image_paths = [os.path.join(input_dir, fname) for fname in os.listdir(input_dir) if fname.endswith(".jpg")]
+    dataset = ImageDataset(image_paths, transform)
+    dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=4)
 
-    # Split image paths into batches
-    batches = [image_paths[i:i + batch_size] for i in range(0, len(image_paths), batch_size)]
+    distances = []
 
-    # Prepare arguments as tuples for each batch
-    args = [(batch, output_dir, model, device, transform) for batch in batches]
+    with torch.no_grad():
+        for batch_imgs, batch_paths in dataloader:
+            batch_imgs = batch_imgs.to(device)
+            outputs = model(batch_imgs)
+            predictions = torch.argmax(outputs, dim=1).cpu().numpy().astype(np.uint8) * 255
 
-    # Process in parallel
-    with ProcessPoolExecutor() as executor:
-        all_mask_files = sum(executor.map(process_batch_with_args, args), [])
+            for pseudolabel, img_path in zip(predictions, batch_paths):
+                # Keep only the largest connected component
+                processed_mask = keep_largest_connected_component(pseudolabel)
 
-    return all_mask_files
+                pseudolabel_img = Image.fromarray(processed_mask)
+                save_path = os.path.join(output_dir, os.path.basename(img_path).replace('.jpg', '_mask.png'))
+                pseudolabel_img.save(save_path)
 
+                if np.any(processed_mask):  # Check if any segmentation occurred
+                    top_pos, bottom_pos = extract_top_bottom_positions(processed_mask)
+                    if top_pos is not None and bottom_pos is not None:
+                        distances.append({
+                            'MaskFile': save_path,
+                            'DistanceFromTop': top_pos,
+                            'DistanceFromBottom': bottom_pos
+                        })
+                    else:
+                        distances.append({
+                            'MaskFile': save_path,
+                            'DistanceFromTop': -1,
+                            'DistanceFromBottom': -1
+                        })
+
+    # Save distances to a file
+    distances_serializable = []
+    for entry in distances:
+        distances_serializable.append({
+            'MaskFile': entry['MaskFile'],
+            'DistanceFromTop': int(entry['DistanceFromTop']),
+            'DistanceFromBottom': int(entry['DistanceFromBottom'])
+        })
+
+    with open('../Distances/distances_unet.json', 'w') as f:
+        json.dump(distances_serializable, f)
 
 def extract_top_bottom_positions(mask):
     non_zero_rows = np.where(mask > 0)[0]
@@ -511,72 +388,89 @@ def keep_largest_connected_component(mask):
     return largest_component_mask
 
 
-def processing_phase(data_dir, cropping_coordinates, conversion_factors, model, device, transform, threshold=0.05):
-    from concurrent.futures import ThreadPoolExecutor
-    from tqdm import tqdm
-    import os
-    import json
+def processing_phase(data_dir, cropping_coordinates, conversion_factors, model, device, transform):
+    video_folders = [f for f in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, f))]
 
-    def process_video_folder(video_folder):
+    # Use tqdm to display progress for video folder processing
+    for video_folder in tqdm(video_folders, desc="Processing video folders"):
         video_folder_path = os.path.join(data_dir, video_folder)
         frames_dir = os.path.join(video_folder_path, "frames")
         cropped_dir = os.path.join(video_folder_path, "cropped")
         masks_dir = os.path.join(video_folder_path, "masks")
 
-        # Check if cropping coordinates exist for this video folder
-        if video_folder not in cropping_coordinates:
-            print(f"Skipping {video_folder}: No cropping coordinates available.")
-            return
+        if video_folder in cropping_coordinates:
+            parallel_crop_images(frames_dir, cropped_dir, cropping_coordinates[video_folder])
+            segment_images_batch(cropped_dir, masks_dir, model, device, transform, batch_size=16)
 
-        # Step 1: Crop images and save cropped versions
-        parallel_crop_images(frames_dir, cropped_dir, cropping_coordinates[video_folder])
+            distances = []
+            max_bottom_distance = float('-inf')
+            min_top_distance = float('inf')
 
-        # Step 2: Segment images and save masks
-        segment_images_batch_parallel(cropped_dir, masks_dir, model, device, transform, batch_size=10)
+            mask_files = os.listdir(masks_dir)
+            # Use tqdm for progress within each video folder's mask processing
+            for filename in tqdm(mask_files, desc=f"Processing masks in {video_folder}", leave=False):
+                mask_path = os.path.join(masks_dir, filename)
+                mask = Image.open(mask_path)
+                mask = np.array(mask)
+                top_position, bottom_position = extract_top_bottom_positions(mask)
 
-        # Step 3: Process masks in parallel with threshold logic
-        mask_files = [f for f in os.listdir(masks_dir) if f.endswith(".png")]
+                if top_position is not None and bottom_position is not None:
+                    distances.append({
+                        "Frame": filename,
+                        "DistanceFromTop": int(top_position),
+                        "DistanceFromBottom": int(bottom_position)
+                    })
 
-        distances, max_bottom_distance, min_top_distance = process_masks_parallel(
-            mask_files, masks_dir, video_folder, threshold
-        )
+                    if "bot" in video_folder.lower():
+                        if max_bottom_distance == float('-inf'):
+                            max_bottom_distance = bottom_position
+                        elif max_bottom_distance <= bottom_position:
+                            max_bottom_distance = bottom_position
 
-        # Step 4: Convert distances using the appropriate conversion factor
-        conversion_factor = conversion_factors[video_folder]
-        distances = convert_distances(distances, conversion_factor)
+                    if "top" in video_folder.lower():
+                        if min_top_distance == float('inf'):
+                            min_top_distance = top_position
+                        elif min_top_distance >= top_position:
+                            min_top_distance = top_position
 
-        # Step 5: Finalize and save distances
-        for distance in distances:
-            distance["DistanceFromTop"] = int(distance["DistanceFromTop"])
-            distance["DistanceFromBottom"] = int(distance["DistanceFromBottom"])
-            distance["DistanceFromTop_cm"] = float(distance["DistanceFromTop_cm"])
-            distance["DistanceFromBottom_cm"] = float(distance["DistanceFromBottom_cm"])
+                else:
+                    distances.append({
+                        "Frame": filename,
+                        "DistanceFromTop": -1,
+                        "DistanceFromBottom": -1
+                    })
 
-        distances_path = os.path.join(video_folder_path, 'distances.json')
-        with open(distances_path, 'w') as f:
-            json.dump(distances, f, indent=4)
+            conversion_factor = conversion_factors[video_folder]
+            distances = convert_distances(distances, conversion_factor)
 
-        # Step 6: Compute special distances and save
-        max_bottom_distance_cm = max_bottom_distance * conversion_factor if max_bottom_distance > float(
-            '-inf') else None
-        min_top_distance_cm = min_top_distance * conversion_factor if min_top_distance < float('inf') else None
+            for distance in distances:
+                distance["DistanceFromTop"] = int(distance["DistanceFromTop"])
+                distance["DistanceFromBottom"] = int(distance["DistanceFromBottom"])
+                distance["DistanceFromTop_cm"] = float(distance["DistanceFromTop_cm"])
+                distance["DistanceFromBottom_cm"] = float(distance["DistanceFromBottom_cm"])
 
-        special_distances = {
-            "MaxBottomDistance_pixels": int(max_bottom_distance) if max_bottom_distance_cm is not None else None,
-            "MaxBottomDistance_cm": max_bottom_distance_cm,
-            "MinTopDistance_pixels": int(min_top_distance) if min_top_distance_cm is not None else None,
-            "MinTopDistance_cm": min_top_distance_cm
-        }
+            with open(os.path.join(video_folder_path, 'distances_unet.json'), 'w') as f:
+                json.dump(distances, f, indent=4)
 
-        special_distances_path = os.path.join(video_folder_path, 'special_distances_unet.json')
-        with open(special_distances_path, 'w') as f:
-            json.dump(special_distances, f, indent=4)
+            if max_bottom_distance > float('-inf'):
+                max_bottom_distance_cm = max_bottom_distance * conversion_factor
+            else:
+                max_bottom_distance_cm = None
 
-    # Process video folders in parallel
-    video_folders = [f for f in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, f))]
+            if min_top_distance < float('inf'):
+                min_top_distance_cm = min_top_distance * conversion_factor
+            else:
+                min_top_distance_cm = None
 
-    with ThreadPoolExecutor(max_workers=8) as executor:  # Adjust `max_workers` based on system resources
-        list(tqdm(executor.map(process_video_folder, video_folders), total=len(video_folders), desc="Processing videos"))
+            special_distances = {
+                "MaxBottomDistance_pixels": int(max_bottom_distance) if max_bottom_distance_cm is not None else None,
+                "MaxBottomDistance_cm": max_bottom_distance_cm,
+                "MinTopDistance_pixels": int(min_top_distance) if min_top_distance_cm is not None else None,
+                "MinTopDistance_cm": min_top_distance_cm
+            }
+
+            with open(os.path.join(video_folder_path, 'special_distances_unet.json'), 'w') as f:
+                json.dump(special_distances, f, indent=4)
 
 
 def calculate_pipe_lengths(data_dir):
@@ -621,24 +515,6 @@ def calculate_pipe_lengths(data_dir):
     return pipe_lengths
 
 
-def profile_function(func, *args, **kwargs):
-    """
-    Profiles a given function and logs results to a file.
-    """
-    profiler = cProfile.Profile()
-    profiler.enable()
-    result = func(*args, **kwargs)
-    profiler.disable()
-
-    # Save profiling stats to a file
-    with open("profile_results.txt", "w") as f:
-        stats = pstats.Stats(profiler, stream=f)
-        stats.sort_stats('cumulative')
-        stats.print_stats()
-
-    return result
-
-
 def main():
 
     data_dir = select_directory()
@@ -674,17 +550,17 @@ def main():
 
     # Step 3: Processing phase
     start_time_process = time.time()
-    processing_phase(data_dir, cropping_coordinates, conversion_factors, model, device, transform, threshold=0.05)
+    processing_phase(data_dir, cropping_coordinates, conversion_factors, model, device, transform)
     print("Images processed in %s seconds." %(time.time()-start_time_process))
 
     # Step 4: Calculate and print pipe lengths
-    pipe_length = calculate_pipe_lengths(data_dir)
+    pipe_lengths = calculate_pipe_lengths(data_dir)
+
 
 
 if __name__ == "__main__":
     from multiprocessing import set_start_method
     set_start_method('spawn')
-
     main()
 
     print("--- Testing complete: %s seconds ---" % (time.time() - start_time))

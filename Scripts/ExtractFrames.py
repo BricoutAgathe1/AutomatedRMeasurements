@@ -8,8 +8,9 @@ def create_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
+
 # Define directories
-base_dir = 'data'
+base_dir = '../Datasets/Testing/data_8bot'
 train_dir = os.path.join(base_dir, 'train')
 val_dir = os.path.join(base_dir, 'val')
 test_dir = os.path.join(base_dir, 'test')
@@ -19,7 +20,7 @@ create_dir(val_dir)
 create_dir(test_dir)
 
 # Read the video from specified path
-video_path = 'Lq e9 9L/3mm bot.mp4'
+video_path = '../Datasets/Lq e9 9L/8mm bot.mp4'
 cam = cv2.VideoCapture(video_path)
 
 # Extract frames from the video

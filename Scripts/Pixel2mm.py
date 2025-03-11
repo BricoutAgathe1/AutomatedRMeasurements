@@ -25,7 +25,7 @@ def mouse_callback(event, x, y, flags, param):
 
 
 # Load an image
-image_path = 'dataset/images/frame0.jpg'
+image_path = 'data_cropped/train_pseudolabels_cropped/frame266_pseudolabel.png'
 image = cv2.imread(image_path)
 if image is None:
     raise FileNotFoundError(f"Image not found: {image_path}")

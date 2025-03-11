@@ -136,35 +136,46 @@ def segment_images(input_dir, output_dir, model, device, transform):
                 pseudolabel = torch.argmax(output, dim=1).squeeze(0).cpu().numpy().astype(np.uint8) * 255
                 pseudolabel_img = Image.fromarray(pseudolabel)
 
-                save_path = os.path.join(output_dir, filename.replace('.jpg', '_mask.png'))
-                pseudolabel_img.save(save_path)
-
-                if np.any(pseudolabel):  # Check if any segmentation occurred
+                if np.any(pseudolabel):
+                    save_path = os.path.join(output_dir, filename.replace('.jpg', '_mask.png'))
+                    pseudolabel_img.save(save_path)
+                    print(f"Segmented images in {input_dir}")
                     top_pos, bottom_pos = extract_top_bottom_positions(pseudolabel)
 
                     if top_pos is not None and bottom_pos is not None:
+                        image_height = pseudolabel.shape[0]
+                        distance_from_top = top_pos
+                        distance_from_bottom = bottom_pos
                         distances.append({
-                            'MaskFile': save_path,
-                            'DistanceFromTop': top_pos,
-                            'DistanceFromBottom': bottom_pos
+                            'MaskFile': pseudolabel_path,
+                            'DistanceFromTop': distance_from_top,
+                            'DistanceFromBottom': distance_from_bottom
                         })
                     else:
-                        distances.append({
-                            'MaskFile': save_path,
-                            'DistanceFromTop': -1,
-                            'DistanceFromBottom': -1
-                        })
+                        print(f"No mask found or mask is empty for {pseudolabel_path}")
+                else:
+                    print(f"Warning: Empty mask for image {filename}")
+                    pseudolabel_path = os.path.join(output_dir,
+                                                    filename.replace('.jpg', '_mask.png'))
+                    pseudolabel_img.save(pseudolabel_path)
+                    distances.append({
+                        'MaskFile': pseudolabel_path,
+                        'DistanceFromTop': -1,  # Indicate no mask found
+                        'DistanceFromBottom': -1  # Indicate no mask found
+                    })
 
-    # Save distances to a file
+    # Convert torch tensors to Python types
     distances_serializable = []
     for entry in distances:
-        distances_serializable.append({
+        # Convert to Python int
+        entry_serializable = {
             'MaskFile': entry['MaskFile'],
-            'DistanceFromTop': int(entry['DistanceFromTop']),
-            'DistanceFromBottom': int(entry['DistanceFromBottom'])
-        })
+            'DistanceFromTop': int(entry['DistanceFromTop']),  # Convert to Python int
+            'DistanceFromBottom': int(entry['DistanceFromBottom'])  # Convert to Python int
+        }
+        distances_serializable.append(entry_serializable)
 
-    with open('distances.json', 'w') as f:
+    with open('../Distances/distances.json', 'w') as f:
         json.dump(distances_serializable, f)
 
     print(f"Distances successfully saved for video: {input_dir}")
@@ -178,12 +189,14 @@ def extract_top_bottom_positions(mask):
     else:
         return None, None  # No mask found
 
+
 def select_directory():
     root = Tk()
     root.withdraw()
     directory_path = filedialog.askdirectory()
     root.destroy()
     return directory_path
+
 
 class DistanceInputApp:
     def __init__(self, root, image):
@@ -223,6 +236,7 @@ class DistanceInputApp:
         except ValueError:
             print("Please enter a valid number.")
 
+
 def get_distance_conversion_factor(image_path):
     image = Image.open(image_path).convert("RGB")
     image = image.resize((224, 224), Image.BILINEAR)
@@ -240,13 +254,15 @@ def get_distance_conversion_factor(image_path):
         print("Distance conversion factor calculation failed.")
         return None
 
+
 def interactive_cropping_phase(data_dir):
     cropping_coordinates = {}
     conversion_factors = {}
 
+    # Get cropping reference points for each video dataset
     for video_folder in os.listdir(data_dir):
-        if os.path.isdir(os.path.join(data_dir, video_folder)):
-            base_name = video_folder
+        if video_folder.endswith(".mp4"):
+            base_name = os.path.splitext(video_folder)[0]
             frames_dir = os.path.join(data_dir, base_name, "frames")
             cropped_dir = os.path.join(data_dir, base_name, "cropped")
 
@@ -275,27 +291,20 @@ def interactive_cropping_phase(data_dir):
 
             cropping_coordinates[video_folder] = ref_point
 
-            # Ensure that the cropped directory exists and save the cropped image there
-            os.makedirs(cropped_dir, exist_ok=True)
-            if ref_point:
-                x1, y1 = ref_point[0]
-                x2, y2 = ref_point[1]
-                cropped_img = image[y1:y2, x1:x2]
-                cropped_img_path = os.path.join(cropped_dir, 'cropped_first_image.jpg')
-                cv2.imwrite(cropped_img_path, cropped_img)
+            first_crop_path = os.path.join(cropped_dir, os.listdir(cropped_dir)[0])
 
-            # Get the conversion factor
-            first_crop_path = os.path.join(cropped_dir, 'cropped_first_image.jpg')
             conversion_factor = get_distance_conversion_factor(first_crop_path)
             conversion_factors[video_folder] = conversion_factor
 
     return cropping_coordinates, conversion_factors
+
 
 def convert_distances(distances, conversion_factor):
     for distance in distances:
         distance["DistanceFromTop_mm"] = distance["DistanceFromTop"] * conversion_factor
         distance["DistanceFromBottom_mm"] = distance["DistanceFromBottom"] * conversion_factor
     return distances
+
 
 def processing_phase(data_dir, cropping_coordinates, conversion_factors, model, device, transform):
     for video_folder in os.listdir(data_dir):
@@ -320,25 +329,18 @@ def processing_phase(data_dir, cropping_coordinates, conversion_factors, model, 
                     if top_position is not None and bottom_position is not None:
                         distances.append({
                             "Frame": filename,
-                            "DistanceFromTop": int(top_position),   # Convert to native Python int
-                            "DistanceFromBottom": int(bottom_position)  # Convert to native Python int
+                            "DistanceFromTop": top_position,
+                            "DistanceFromBottom": bottom_position,
                         })
                     else:
                         distances.append({
                             "Frame": filename,
                             "DistanceFromTop": -1,
-                            "DistanceFromBottom": -1
+                            "DistanceFromBottom": -1,
                         })
 
                 conversion_factor = conversion_factors[video_folder]
                 distances = convert_distances(distances, conversion_factor)
-
-                # Ensure all values are JSON serializable
-                for distance in distances:
-                    distance["DistanceFromTop"] = int(distance["DistanceFromTop"])
-                    distance["DistanceFromBottom"] = int(distance["DistanceFromBottom"])
-                    distance["DistanceFromTop_mm"] = float(distance["DistanceFromTop_mm"])
-                    distance["DistanceFromBottom_mm"] = float(distance["DistanceFromBottom_mm"])
 
                 with open(os.path.join(video_folder_path, 'distances.json'), 'w') as f:
                     json.dump(distances, f, indent=4)
@@ -349,7 +351,7 @@ def main():
 
     model = ResNetSegmentation(backbone='resnet18', num_classes=2)  # Choose the appropriate backbone
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.load_state_dict(torch.load('best_combined_segmentation_model_weights.pth', map_location=device))
+    model.load_state_dict(torch.load('../Model weights/best_combined_segmentation_model_weights.pth', map_location=device))
     model = model.to(device)
 
     transform = transforms.Compose([
@@ -359,6 +361,7 @@ def main():
 
     cropping_coordinates, conversion_factors = interactive_cropping_phase(data_dir)
     processing_phase(data_dir, cropping_coordinates, conversion_factors, model, device, transform)
+
 
 if __name__ == "__main__":
     main()
