@@ -38,7 +38,7 @@ class UltrasoundDataset(Dataset):
         # Identify the correct mask path by finding which mask directory contains the corresponding mask
         mask_path = None
         for mask_dir in self.mask_dirs:
-            potential_mask_path = os.path.join(mask_dir, img_name.replace('.jpg', '_mask.png'))
+            potential_mask_path = os.path.join(mask_dir, img_name.replace('.bmp', '_mask.png'))
             if os.path.exists(potential_mask_path):
                 mask_path = potential_mask_path
                 break
@@ -76,14 +76,14 @@ transform = transforms.Compose([
 # Create dataloaders
 batch_size = 8
 
-train_image_dirs = ['../Datasets/Testing/Global_Dataset/train/half_flipped']
-train_mask_dirs = ['../Datasets/Testing/Global_Dataset/train/half_flipped']
+train_image_dirs = ['../Datasets/TM_Split/train/images']
+train_mask_dirs = ['../Datasets/TM_Split/train/masks']
 
 train_dataset = UltrasoundDataset(train_image_dirs, train_mask_dirs, image_transform=transform, mask_transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-val_image_dirs = ['../Datasets/Testing/Global_Dataset/val/half_flipped']
-val_mask_dirs = ['../Datasets/Testing/Global_Dataset/val/half_flipped']
+val_image_dirs = ['../Datasets/TM_Split/val/images']
+val_mask_dirs = ['../Datasets/TM_Split/val/masks']
 
 val_dataset = UltrasoundDataset(val_image_dirs, val_mask_dirs, image_transform=transform, mask_transform=transform)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -121,17 +121,17 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 # Ensure the save directory exists
 save_dir = '../Model weights'
 os.makedirs(save_dir, exist_ok=True)
-best_weights_path = os.path.join(save_dir, 'best_segmentation_model_weights_unetXresnet18.pth')
+best_weights_path = os.path.join(save_dir, 'optimised_TM_model_weights_unetXresnet18.pth')
 
 # Training and validation loop
-num_epochs = 15
+num_epochs = 20
 
 # Initialise variables
 best_dice = -float('inf')
 best_hausdorff = float('inf')
 
 # Define a file path for saving metrics
-csv_file_path = "../optimised_unetXresnet18.csv"
+csv_file_path = "../optimised_TM_unetXresnet18.csv"
 # Initialize the CSV file with headers
 with open(csv_file_path, mode='w', newline='') as file:
     writer = csv.writer(file)
@@ -204,7 +204,7 @@ train_losses = []
 val_losses = []
 
 # Read the CSV file
-csv_file_path = "../optimised_unetXresnet18.csv"
+csv_file_path = "../optimised_TM_unetXresnet18.csv"
 with open(csv_file_path, mode='r') as file:
     reader = csv.DictReader(file)
     for row in reader:
