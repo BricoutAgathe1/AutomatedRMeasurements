@@ -232,33 +232,6 @@ def interactive_cropping_phase(data_dir):
     return cropping_coordinates, conversion_factors
 
 
-# Segment out the pipes and extract top/bot distances
-# def keep_largest_connected_component(mask):
-#     """
-#     Retain only the largest connected component in the binary mask.
-#     Args:
-#         mask (numpy.ndarray): Binary mask of the segmentation (values: 0 or 255).
-#
-#     Returns:
-#         numpy.ndarray: Processed mask with only the largest connected component.
-#     """
-#     # Find all connected components (white regions in the binary mask)
-#     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=8)
-#
-#     # If there's only one label (background), return the mask as is
-#     if num_labels <= 1:
-#         return mask
-#
-#     # Identify the largest component (excluding the background, label 0)
-#     largest_component_idx = np.argmax(stats[1:, cv2.CC_STAT_AREA]) + 1
-#
-#     # Create a new binary mask for the largest component
-#     largest_component_mask = np.zeros_like(mask)
-#     largest_component_mask[labels == largest_component_idx] = 255
-#
-#     return largest_component_mask
-
-
 def extract_top_bottom_positions(mask):
     non_zero_rows = np.where(mask > 0)[0]
     if len(non_zero_rows) > 0:
@@ -502,7 +475,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = smp.Unet(encoder_name="resnet18", in_channels=1, classes=2).to(device)
 
-    model.load_state_dict(torch.load('../Model weights/Updated/best_segmentation_model_weights_unetXresnet18.pth', map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load('../Model weights/MUIA_model_weights_unetXresnet18.pth', map_location=torch.device('cpu')))
     model.eval()
 
     transform = transforms.Compose([

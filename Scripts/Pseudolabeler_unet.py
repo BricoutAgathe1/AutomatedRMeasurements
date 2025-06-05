@@ -10,38 +10,6 @@ import time
 
 start_time = time.time()
 
-
-# Dataset class
-class UltrasoundDataset(Dataset):
-    def __init__(self, image_dir, mask_dir, transform=None):
-        self.image_dir = image_dir
-        self.mask_dir = mask_dir
-        self.image_filenames = os.listdir(image_dir)
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.image_filenames)
-
-    def __getitem__(self, idx):
-        img_name = self.image_filenames[idx]
-        img_path = os.path.join(self.image_dir, img_name)
-        mask_name = img_name.replace('.jpg', '_mask.png')
-        mask_path = os.path.join(self.mask_dir, mask_name)
-
-        if not os.path.exists(mask_path):
-            raise FileNotFoundError(f"Mask file not found: {mask_path}")
-
-        image = Image.open(img_path).convert("L")
-        mask = Image.open(mask_path).convert("L")
-
-        if self.transform:
-            image = self.transform(image)
-            mask = self.transform(mask)
-            mask = (mask > 0).float()  # Binarize mask
-
-        return image, mask
-
-
 # Define transformations
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
@@ -115,7 +83,7 @@ class UNet(nn.Module):
 # Load model and weights from initial training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = UNet(in_channels=1, out_channels=2).to(device)
-model.load_state_dict(torch.load('../Model weights/best_segmentation_model_weights_unet.pth', map_location=torch.device('cpu')))
+model.load_state_dict(torch.load('../Model weights/MUIA_model_weights_unet.pth', map_location=torch.device('cpu')))
 model.eval()
 
 
@@ -139,9 +107,10 @@ class UnlabeledUltrasoundDataset(Dataset):
 
         return image, img_name
 
+
 # Pseudolabelling settings
-unlabeled_image_dir = '../Datasets/Testing/Global_Dataset/val/half_flipped'
-pseudolabel_dir = '../Datasets/Testing/Global_Dataset/val/half_flipped'
+unlabeled_image_dir = '../Datasets/TM_Split/test/cropped_all'
+pseudolabel_dir = '../Datasets/TM_Split/test/croppedAll_unet'
 os.makedirs(pseudolabel_dir, exist_ok=True)
 
 # Pseudolabelling process
@@ -156,7 +125,7 @@ with torch.no_grad():
 
         for pseudolabel, image_name in zip(pseudolabels, image_names):
             pseudolabel_np = (pseudolabel.cpu().numpy() * 255).astype(np.uint8)
-            pseudolabel_path = os.path.join(pseudolabel_dir, image_name.replace('.jpg', '_pseudolabel.png'))
+            pseudolabel_path = os.path.join(pseudolabel_dir, image_name.replace('.bmp', '_pseudolabel.png'))
             cv2.imwrite(pseudolabel_path, pseudolabel_np)
 
 

@@ -18,7 +18,7 @@ def crop_image(img, ref_point):
 def crop_images(input_dir, output_dir, ref_point):
     os.makedirs(output_dir, exist_ok=True)
     for filename in os.listdir(input_dir):
-        if filename.endswith(".jpg") or filename.endswith(".png"):
+        if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".bmp"):
             img_path = os.path.join(input_dir, filename)
             img = cv2.imread(img_path)
             if img is None:
@@ -54,9 +54,9 @@ def draw_square(event, x, y, flags, param):
         cv2.imshow("image", image)
 
 # Load an example image to select the crop area
-image_path = "../Datasets/Testing/Global_Datasets_IMV/ToLabel/shuffled_frame0.jpg"
-input_dir = "../Datasets/Testing/Global_Datasets_IMV/ToLabel/"
-output_dir = "../Datasets/Testing/Global_Datasets_IMV/ToLabel/cropped"
+image_path = "../Datasets/Noisy pipes/Noise=0.6/2mm btm a_speckled.png"
+input_dir = "../Datasets/Noisy pipes/Noise=0.6"
+output_dir = "../Datasets/Noisy pipes/Noise=0.6/cropped"
 os.makedirs(output_dir, exist_ok=True)
 image = cv2.imread(image_path)
 

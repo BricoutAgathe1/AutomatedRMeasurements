@@ -67,14 +67,14 @@ transform = transforms.Compose([
 # Create dataloaders
 batch_size = 8
 
-train_image_dirs = ['../Datasets/Testing/Global_Dataset/train/half_flipped']
-train_mask_dirs = ['../Datasets/Testing/Global_Dataset/train/half_flipped']
+train_image_dirs = ['../Datasets/TM_Split/train']
+train_mask_dirs = ['../Datasets/TM_Split/train']
 
 train_dataset = UltrasoundDataset(train_image_dirs, train_mask_dirs, image_transform=transform, mask_transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-val_image_dirs = ['../Datasets/Testing/Global_Dataset/val/half_flipped']
-val_mask_dirs = ['../Datasets/Testing/Global_Dataset/val/half_flipped']
+val_image_dirs = ['../Datasets/TM_Split/val']
+val_mask_dirs = ['../Datasets/TM_Split/val']
 
 val_dataset = UltrasoundDataset(val_image_dirs, val_mask_dirs, image_transform=transform, mask_transform=transform)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -169,29 +169,29 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = UNet(in_channels=1, out_channels=2).to(device)
 
 # Load previous weights if resuming training for fine-tuning
-previous_weights_path = '../Model weights/best_segmentation_model_weights_unet.pth'
+previous_weights_path = '../Model weights/MUIA_model_weights_unet.pth'
 if os.path.exists(previous_weights_path):
     model.load_state_dict(torch.load(previous_weights_path))
 
 # Criterion and optimizer
-criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3, factor=0.5)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=1.e-4)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 
 # Ensure the save directory exists
 save_dir = '../Model weights'
 os.makedirs(save_dir, exist_ok=True)
-best_weights_path = os.path.join(save_dir, 'best_segmentation_model_weights_unet.pth')
+best_weights_path = os.path.join(save_dir, 'MUIA_model_weights_unet.pth')
 
 # Training and validation loop
-num_epochs = 100
+num_epochs = 30
 
 # Initialise variables
 best_dice = -float('inf')
 best_hausdorff = float('inf')
 
 # Define a file path for saving metrics
-csv_file_path = "../training_metrics_100epochs_unet.csv"
+csv_file_path = "../training_metrics_30epochs_unet.csv"
 # Initialize the CSV file with headers
 with open(csv_file_path, mode='w', newline='') as file:
     writer = csv.writer(file)

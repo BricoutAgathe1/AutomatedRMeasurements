@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
 # Path to the VIA annotations file
-annotations_file = '../Annotations/TM_pipes/Acuson128_annotations_json.json'
+annotations_file = '../Annotations/TM_pipes/Acuson128_final_json.json'
 
 # Directory to save mask images
 masks_dir = '../Datasets/TM_pipes/Acuson128'

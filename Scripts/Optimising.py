@@ -62,28 +62,28 @@ class UltrasoundDataset(Dataset):
 # Define image and mask transformations
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
-    transforms.RandomHorizontalFlip(p=0.5),
-    transforms.RandomVerticalFlip(p=0.5),
-    transforms.RandomRotation(15),
-    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=10),
+    #transforms.RandomHorizontalFlip(p=0.5),
+    #transforms.RandomVerticalFlip(p=0.5),
+    #transforms.RandomRotation(15),
+    #transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=10),
     transforms.ToTensor(),
-    transforms.Lambda(lambda x: x+0.05 * torch.randn_like(x)),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2),
-    transforms.GaussianBlur(kernel_size=(5,5), sigma=(0.1, 2.0)),
+    #transforms.Lambda(lambda x: x+0.05 * torch.randn_like(x)),
+    #transforms.ColorJitter(brightness=0.2, contrast=0.2),
+    #transforms.GaussianBlur(kernel_size=(5,5), sigma=(0.1, 2.0)),
 ])
 
 
 # Create dataloaders
 batch_size = 8
 
-train_image_dirs = ['../Datasets/TM_Split/train/images']
-train_mask_dirs = ['../Datasets/TM_Split/train/masks']
+train_image_dirs = ['../Datasets/TM_Split/train/cropped']
+train_mask_dirs = ['../Datasets/TM_Split/train/cropped']
 
 train_dataset = UltrasoundDataset(train_image_dirs, train_mask_dirs, image_transform=transform, mask_transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-val_image_dirs = ['../Datasets/TM_Split/val/images']
-val_mask_dirs = ['../Datasets/TM_Split/val/masks']
+val_image_dirs = ['../Datasets/TM_Split/val/cropped']
+val_mask_dirs = ['../Datasets/TM_Split/val/cropped']
 
 val_dataset = UltrasoundDataset(val_image_dirs, val_mask_dirs, image_transform=transform, mask_transform=transform)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -124,7 +124,7 @@ os.makedirs(save_dir, exist_ok=True)
 best_weights_path = os.path.join(save_dir, 'optimised_TM_model_weights_unetXresnet18.pth')
 
 # Training and validation loop
-num_epochs = 20
+num_epochs = 50
 
 # Initialise variables
 best_dice = -float('inf')
