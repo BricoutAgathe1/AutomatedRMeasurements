@@ -28,6 +28,7 @@ class ImageLabel(QtWidgets.QLabel):
         self.rect = None
         self.line = None
         self._pixmap = None
+        self._pixmap_draw_rect = QtCore.QRect()  # area where pixmap is drawn inside the label
         self.force_vertical = True
         self.setMouseTracking(True)
         self.setAlignment(QtCore.Qt.AlignCenter)
@@ -81,12 +82,21 @@ class ImageLabel(QtWidgets.QLabel):
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
 
-        # draw image
-        if self._pixmap:
+
+        # draw image (centered, keep aspect ratio) and remember draw rect
+        if self._pixmap and not self._pixmap.isNull():
             scaled = self._pixmap.scaled(
-                self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                self.contentsRect().size(),
+                QtCore.Qt.KeepAspectRatio,
+                QtCore.Qt.SmoothTransformation
             )
-            painter.drawPixmap(self.contentsRect(), scaled)
+            cr = self.contentsRect()
+            x = cr.x() + (cr.width() - scaled.width()) // 2
+            y = cr.y() + (cr.height() - scaled.height()) // 2
+            self._pixmap_draw_rect = QtCore.QRect(x, y, scaled.width(), scaled.height())
+            painter.drawPixmap(self._pixmap_draw_rect, scaled)
+        else:
+            self._pixmap_draw_rect = QtCore.QRect()
 
         # draw overlays
         pen = QtGui.QPen(QtGui.QColor("red"), 2, QtCore.Qt.SolidLine)
@@ -102,6 +112,32 @@ class ImageLabel(QtWidgets.QLabel):
         elif self.drawing_mode == "line" and self.line:
             painter.drawLine(self.line[0], self.line[1])
 
+    def widget_rect_to_pixmap_rect(self, widget_rect: QtCore.QRect) -> QtCore.QRect:
+        """
+        Map a QRect in widget coordinates (e.g. the user-drawn rect) to pixmap pixel coordinates.
+        Returns a QRect clipped to pixmap bounds, or None if mapping is not possible.
+        """
+        if not self._pixmap or self._pixmap_draw_rect.isNull():
+            return None
+
+        # local coords inside drawn pixmap
+        local_x = widget_rect.x() - self._pixmap_draw_rect.x()
+        local_y = widget_rect.y() - self._pixmap_draw_rect.y()
+        local_w = widget_rect.width()
+        local_h = widget_rect.height()
+
+        # If the user's rect is outside the drawn pixmap, clip it
+        # compute scale factors from draw rect -> actual pixmap pixels
+        scale_w = self._pixmap.width() / self._pixmap_draw_rect.width()
+        scale_h = self._pixmap.height() / self._pixmap_draw_rect.height()
+        px = int(local_x * scale_w)
+        py = int(local_y * scale_h)
+        pw = int(local_w * scale_w)
+        ph = int(local_h * scale_h)
+
+        mapped = QtCore.QRect(px, py, pw, ph).normalized()
+        mapped = mapped.intersected(QtCore.QRect(0, 0, self._pixmap.width(), self._pixmap.height()))
+        return mapped if not mapped.isNull() else None
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -213,7 +249,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def update_next_button_state(self):
         self.btnNextImage.setEnabled(self.rect is not None and self.line is not None)
 
+    # python
     def load_first_image_for_cropping(self):
+        # If video_folders not set or empty, (re)discover subfolders in the selected base folder
+        if not getattr(self, "video_folders", None) or len(self.video_folders) == 0:
+            base = self.lblFolderPath.text()
+            if not base or not os.path.isdir(base):
+                self.lblStatus.setText("Status: No folders found")
+                return
+            self.video_folders = [
+                os.path.join(base, f)
+                for f in os.listdir(base)
+                if os.path.isdir(os.path.join(base, f))
+            ]
+            self.current_video_idx = 0
+            self.cropping_coordinates = getattr(self, "cropping_coordinates", {})
+            self.conversion_factors = getattr(self, "conversion_factors", {})
+
         if self.current_video_idx >= len(self.video_folders):
             self.btnNextImage.setEnabled(False)
             self.btnBatchCrop.setEnabled(True)
@@ -227,25 +279,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lblStatus.setText("Status: Editing frames...")
 
         frames_dir = os.path.join(current_folder, "frames")
-        first_image_path = os.path.join(frames_dir, sorted(os.listdir(frames_dir))[0])
+        # guard against missing/empty frames directory
+        if not os.path.isdir(frames_dir):
+            self.lblStatus.setText(f"Status: No frames in {current_folder}")
+            return
+        entries = sorted(os.listdir(frames_dir))
+        if not entries:
+            self.lblStatus.setText(f"Status: No frames in {frames_dir}")
+            return
+
+        first_image_path = os.path.join(frames_dir, entries[0])
 
         self.current_image_path = first_image_path
         self.rect = None
         self.line = None
         self.update_next_button_state()
 
-        # Load image into ImageLabel
+        # Load full (original) image into ImageLabel so the label can scale it consistently
         pixmap = QtGui.QPixmap(first_image_path)
+        if pixmap.isNull():
+            self.lblStatus.setText("Status: Failed to load image")
+            return
 
-        # Scale pixmap to fit into the label while keeping aspect ratio
-        scaled_pixmap = pixmap.scaled(
-            self.imageLabel.size(),
-            QtCore.Qt.KeepAspectRatio,
-            QtCore.Qt.SmoothTransformation
-        )
-
-        self.imageLabel.setPixmap(scaled_pixmap)
-        self.imageLabel.setScaledContents(False)  # make sure QLabel doesn't stretch further
+        self.imageLabel.setPixmap(pixmap)
+        self.imageLabel.setScaledContents(False)
 
         # Reset drawing stuff
         self.imageLabel.rect = None
@@ -256,37 +313,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if not self.imageLabel.rect:
             return
 
-        # Ensure we have the path to the original image shown for this folder
-        if not getattr(self, "current_image_path", None):
+        # Map the widget-space rect to pixmap (original image) pixels
+        mapped = self.imageLabel.widget_rect_to_pixmap_rect(self.imageLabel.rect)
+        if mapped is None:
             return
 
-        displayed_pm = self.imageLabel._pixmap
-        if not displayed_pm:
-            return
+        # Store rect in original image pixel coordinates so BatchCropWorker can reuse it
+        self.cropping_coordinates[self.current_video_idx] = mapped
 
-        # Load the original (full-size) pixmap for the current first image
+        # Use original pixmap to create a correct preview crop
         orig_pm = QtGui.QPixmap(self.current_image_path)
         if orig_pm.isNull():
             return
 
-        # Compute scale from displayed (scaled) pixmap back to original image pixels
-        # Note: displayed_pm is the pixmap currently shown in the label (scaled to fit)
-        scale_w = orig_pm.width() / displayed_pm.width()
-        scale_h = orig_pm.height() / displayed_pm.height()
-
-        rd = self.imageLabel.rect  # rect in displayed pixmap coordinates
-        rect = QtCore.QRect(
-            int(rd.x() * scale_w),
-            int(rd.y() * scale_h),
-            int(rd.width() * scale_w),
-            int(rd.height() * scale_h),
-        )
-
-        # Store rect in original image pixel coordinates so BatchCropWorker can reuse it
-        self.cropping_coordinates[self.current_video_idx] = rect
-
-        # Use original pixmap to create a correct preview crop
-        cropped = orig_pm.copy(rect)
+        cropped = orig_pm.copy(mapped)
         final = cropped.scaled(
             256, 256,
             QtCore.Qt.IgnoreAspectRatio,
