@@ -251,27 +251,42 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.imageLabel.rect = None
         self.imageLabel.line = None
 
+    # python
     def on_set_crop(self):
         if not self.imageLabel.rect:
             return
 
-        pm = self.imageLabel._pixmap
-        if not pm:
+        # Ensure we have the path to the original image shown for this folder
+        if not getattr(self, "current_image_path", None):
             return
-        # scale label rect to image coordinates
-        scale_w = pm.width() / self.imageLabel.width()
-        scale_h = pm.height() / self.imageLabel.height()
+
+        displayed_pm = self.imageLabel._pixmap
+        if not displayed_pm:
+            return
+
+        # Load the original (full-size) pixmap for the current first image
+        orig_pm = QtGui.QPixmap(self.current_image_path)
+        if orig_pm.isNull():
+            return
+
+        # Compute scale from displayed (scaled) pixmap back to original image pixels
+        # Note: displayed_pm is the pixmap currently shown in the label (scaled to fit)
+        scale_w = orig_pm.width() / displayed_pm.width()
+        scale_h = orig_pm.height() / displayed_pm.height()
+
+        rd = self.imageLabel.rect  # rect in displayed pixmap coordinates
         rect = QtCore.QRect(
-            int(self.imageLabel.rect.x() * scale_w),
-            int(self.imageLabel.rect.y() * scale_h),
-            int(self.imageLabel.rect.width() * scale_w),
-            int(self.imageLabel.rect.height() * scale_h),
+            int(rd.x() * scale_w),
+            int(rd.y() * scale_h),
+            int(rd.width() * scale_w),
+            int(rd.height() * scale_h),
         )
 
-        # 👉 Store rect in absolute pixel coords
+        # Store rect in original image pixel coordinates so BatchCropWorker can reuse it
         self.cropping_coordinates[self.current_video_idx] = rect
 
-        cropped = pm.copy(rect)
+        # Use original pixmap to create a correct preview crop
+        cropped = orig_pm.copy(rect)
         final = cropped.scaled(
             256, 256,
             QtCore.Qt.IgnoreAspectRatio,
@@ -281,7 +296,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.imageLabel.setScaledContents(False)
         self.imageLabel.setPixmap(final)
         self.imageLabel.setFixedSize(final.size())
-
         self.imageLabel.setAlignment(QtCore.Qt.AlignCenter)
 
         self.imageLabel.drawing_mode = "line"
@@ -392,7 +406,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         model.load_state_dict(torch.load('Model/ChrisScanners_model_weights_unetXresnet18_310725.pth', map_location=torch.device('cpu')))
         model.eval()
 
-        self.worker = BatchSegmentWorker(self.video_folders, model, device, self.conversion_factors)
+        self.worker = BatchSegmentWorker(
+            self.video_folders,
+            model,
+            device,
+            self.conversion_factors)
 
         self.worker.progress.connect(self.progressBar.setValue)
         self.worker.finished.connect(self.export_results)
@@ -568,12 +586,12 @@ class BatchSegmentWorker(QtCore.QThread):
     progress = QtCore.Signal(int)
     finished = QtCore.Signal()
 
-    def __init__(self, video_folders, model, device, conversion_factor):
+    def __init__(self, video_folders, model, device, conversion_factors):
         super().__init__()
         self.video_folders = video_folders
         self.model = model
         self.device = device
-        self.conversion_factor = conversion_factor
+        self.conversion_factors = conversion_factors  # dict: {folder_index: factor}
         self.max_bottom_distance = {}
         self.min_top_distance = {}
 
@@ -581,11 +599,16 @@ class BatchSegmentWorker(QtCore.QThread):
         total_images = sum(len(os.listdir(os.path.join(f, "cropped"))) for f in self.video_folders)
         done = 0
 
-        for folder in self.video_folders:
+        for idx, folder in enumerate(self.video_folders):
             cropped_dir = os.path.join(folder, "cropped")
             pseudolabels_dir = os.path.join(folder, "pseudolabels")
             os.makedirs(pseudolabels_dir, exist_ok=True)
-            conversion_factor = self.conversion_factor.get(self.video_folders.index(folder))
+
+            # Get conversion factor for this folder
+            conversion_factor = self.conversion_factors.get(idx)
+            if conversion_factor is None:
+                print(f"⚠️ No conversion factor found for folder {folder}. Skipping.")
+                continue
 
             max_bottom_distance = float('-inf')
             min_top_distance = float('inf')
@@ -593,58 +616,63 @@ class BatchSegmentWorker(QtCore.QThread):
             for img_name in sorted(os.listdir(cropped_dir)):
                 img_path = os.path.join(cropped_dir, img_name)
                 image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+                if image is None:
+                    continue
+
                 image = cv2.resize(image, (256, 256))
                 image_tensor = torch.tensor(image, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.0
                 image_tensor = image_tensor.to(self.device)
 
+                # Run segmentation
                 with torch.no_grad():
                     output = self.model(image_tensor)
                     pseudolabel = torch.argmax(output, dim=1).squeeze().cpu().numpy().astype(np.uint8) * 255
 
+                # Save pseudolabel
                 pseudolabel_path = os.path.join(pseudolabels_dir, img_name.replace('.png', '_pseudolabel.png'))
                 cv2.imwrite(pseudolabel_path, pseudolabel)
+
+                # Calculate top/bottom distances
                 mask = cv2.imread(pseudolabel_path, cv2.IMREAD_GRAYSCALE)
                 row_sums = np.sum(mask > 0, axis=1)
                 non_zero_rows = np.where(row_sums > 0)[0]
-
                 if len(non_zero_rows) == 0:
                     continue
 
                 top_row = non_zero_rows[0]
                 bottom_row = non_zero_rows[-1]
 
-                # convert row indices to mm
+                # Convert pixel indices to mm
                 top_mm = top_row * conversion_factor
                 bottom_mm = bottom_row * conversion_factor
 
-                # update per-folder stats
+                # Update per-folder stats
                 max_bottom_distance = max(max_bottom_distance, bottom_mm)
                 min_top_distance = min(min_top_distance, top_mm)
 
                 done += 1
                 self.progress.emit(int(done / total_images * 100))
 
-            # after finishing all images in folder, save results
-            self.max_bottom_distance[folder] = (
-                max_bottom_distance if max_bottom_distance > float('-inf') else None
-            )
+            # Save per-folder JSON file
+            result_json_path = os.path.join(folder, "special_distances_unetXresnet18.json")
+            result_data = {}
+            if min_top_distance < float('inf'):
+                result_data["MinTopDistance_cm"] = min_top_distance / 10.0  # mm → cm
+            if max_bottom_distance > float('-inf'):
+                result_data["MaxBottomDistance_cm"] = max_bottom_distance / 10.0  # mm → cm
+
+            with open(result_json_path, "w") as f:
+                json.dump(result_data, f, indent=2)
+
+            # Store results in worker memory too
             self.min_top_distance[folder] = (
                 min_top_distance if min_top_distance < float('inf') else None
             )
+            self.max_bottom_distance[folder] = (
+                max_bottom_distance if max_bottom_distance > float('-inf') else None
+            )
 
-            # save per-folder JSON
-            def save_distances_json(folder_path, min_top=None, max_bot=None):
-                out_path = os.path.join(folder_path, "special_distances_unetXresnet18.json")
-                data = {}
-                if min_top is not None:
-                    data["MinTopDistance_mm"] = min_top
-                if max_bot is not None:
-                    data["MaxBottomDistance_mm"] = max_bot
-                with open(out_path, "w") as f:
-                    json.dump(data, f, indent=2)
-
-            save_distances_json(folder, min_top=min_top_distance, max_bot=max_bottom_distance)
-
+        # Emit finished signal when done
         self.finished.emit()
 
 
