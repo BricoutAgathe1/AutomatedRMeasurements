@@ -249,7 +249,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def update_next_button_state(self):
         self.btnNextImage.setEnabled(self.rect is not None and self.line is not None)
 
-    # python
     def load_first_image_for_cropping(self):
         # If video_folders not set or empty, (re)discover subfolders in the selected base folder
         if not getattr(self, "video_folders", None) or len(self.video_folders) == 0:
@@ -405,6 +404,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.imageLabel.setFixedSize(self.lblImageDisplay.size())  # reset to container size
             self.imageLabel.setAlignment(QtCore.Qt.AlignCenter)
             pixmap = QtGui.QPixmap("graphics/blank.png")
+            self.imageLabel.line=None
+            self.imageLabel.rect = None
             self.imageLabel.setPixmap(pixmap)
             return
 
@@ -509,9 +510,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.update_excel_with_pipe_lengths(xlsx_path, pipe_lengths)
 
         self.lblStatus.setText(f"Status: Results exported to {xlsx_path}")
-        self.plot_pipe_lengths_in_label(self.lblResults, xlsx_path="experiment_results.xlsx")
+        self.plot_pipe_lengths_in_label(self.lblResults, xlsx_path="results.xlsx")
 
-    def plot_pipe_lengths_in_label(self, lbl, xlsx_path="experiment_results.xlsx"):
+    def plot_pipe_lengths_in_label(self, lbl, xlsx_path="results.xlsx"):
 
         # --- Read pipe lengths from Excel ---
         wb = openpyxl.load_workbook(xlsx_path, data_only=True)

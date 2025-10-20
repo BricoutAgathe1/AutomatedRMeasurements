@@ -3,9 +3,9 @@ import random
 import shutil
 
 # Define paths
-parent_directory = "../Datasets/TM_pipes"  # Directory containing all folders
-merged_folder = "../Datasets/TM_Data"  # Destination folder for all images and masks
-output_dir = "../Datasets/TM_Split"  # Output folder for dataset splits
+parent_directory = "../Datasets/Chris_scanners/Cropped"  # Directory containing all folders
+merged_folder = "../Datasets/Chris_scanners/Merged"  # Destination folder for all images and masks
+output_dir = "../Datasets/Chris_scanners/Splits"  # Output folder for dataset splits
 
 # Create merged folder if it doesn't exist
 os.makedirs(merged_folder, exist_ok=True)
@@ -16,10 +16,10 @@ for folder in os.listdir(parent_directory):
 
     # Ensure it's a directory
     if os.path.isdir(folder_path):
-        images_in_folder = [f for f in os.listdir(folder_path) if f.endswith(".bmp")]
+        images_in_folder = [f for f in os.listdir(folder_path) if f.endswith((".jpg", ".JPG"))]
 
         for img_file in images_in_folder:
-            mask_file = img_file.replace(".bmp", "_mask.png")  # Expected mask name
+            mask_file = os.path.splitext(img_file)[0] + "_mask.png"
             mask_path = os.path.join(folder_path, mask_file)
 
             # Check if corresponding mask exists
@@ -49,7 +49,7 @@ for split in split_names:
     os.makedirs(os.path.join(output_dir, split, "masks"), exist_ok=True)
 
 # Collect image-mask pairs
-images = [f for f in os.listdir(merged_folder) if f.endswith(".bmp")]
+images = [f for f in os.listdir(merged_folder) if f.endswith((".jpg", ".JPG"))]
 random.shuffle(images)  # Shuffle randomly
 
 # Define split ratios
@@ -71,7 +71,7 @@ test_images = images[train_size + val_size:]
 # Function to copy images and masks to respective datasets
 def copy_files(image_list, split_name):
     for img_file in image_list:
-        mask_file = img_file.replace(".bmp", "_mask.png")  # Find corresponding mask
+        mask_file = os.path.splitext(img_file)[0] + "_mask.png"
         img_src = os.path.join(merged_folder, img_file)
         mask_src = os.path.join(merged_folder, mask_file)
 

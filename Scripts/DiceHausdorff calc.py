@@ -6,9 +6,9 @@ import cv2
 from medpy.metric.binary import hd
 
 # Paths
-gt_folder = '../Datasets/TM_Split/test/cropped_masks_all'
-pseudo_folder = '../Datasets/TM_Split/test/croppedAll_unetXresnet152'
-output_csv = 'test_unetXresnet152_pseudolabel_metrics.csv'
+gt_folder = '../Datasets/Chris_scanners/Splits/test/masks'
+pseudo_folder = '../Datasets/Chris_scanners/Splits/test/pseudolabels_unetXresnet18'
+output_csv = '../Datasets/Chris_scanners/Splits/test/pseudolabels_unetXresnet18/Hausdorff_Dice_metrics.csv'
 
 # Dice and Hausdorff functions
 def dice_score(pred, target):

@@ -11,6 +11,7 @@ import time
 start_time = time.time()
 
 
+# Dataset class
 class UltrasoundDataset(Dataset):
     def __init__(self, image_dirs, mask_dirs, image_transform=None, mask_transform=None):
         self.image_dirs = image_dirs  # List of image directories
@@ -19,7 +20,11 @@ class UltrasoundDataset(Dataset):
 
         # Collect all filenames from each directory
         for image_dir in self.image_dirs:
-            self.image_filenames.extend([os.path.join(image_dir, f) for f in os.listdir(image_dir)])
+            self.image_filenames.extend([
+                os.path.join(image_dir, f)
+                for f in os.listdir(image_dir)
+                if not f.lower().endswith('_mask.png')  # exclude masks
+            ])
 
         self.image_transform = image_transform
         self.mask_transform = mask_transform
@@ -31,26 +36,28 @@ class UltrasoundDataset(Dataset):
         img_path = self.image_filenames[idx]
         img_name = os.path.basename(img_path)
 
-        # Identify the correct mask path by finding which mask directory contains the corresponding mask
+        # Safely create mask name regardless of image extension case
+        basename, _ = os.path.splitext(img_name)
+        mask_filename = basename + '_mask.png'
+
         mask_path = None
         for mask_dir in self.mask_dirs:
-            potential_mask_path = os.path.join(mask_dir, img_name.replace('.png', '_mask.png'))
-            if os.path.exists(potential_mask_path):
-                mask_path = potential_mask_path
+            mask_candidate = os.path.join(mask_dir, mask_filename)
+            if os.path.exists(mask_candidate):
+                mask_path = mask_candidate
                 break
 
         if mask_path is None:
             raise FileNotFoundError(f"Mask not found for image: {img_path}")
 
-        image = Image.open(img_path).convert("L")
-        mask = Image.open(mask_path).convert("L")
+        image = Image.open(img_path).convert("L")  # Convert image to grayscale
+        mask = Image.open(mask_path).convert("L")  # Ensure mask is single-channel
 
         if self.image_transform:
             image = self.image_transform(image)
         if self.mask_transform:
             mask = self.mask_transform(mask)
-
-            mask = (mask > 0).float()  # Binarize the mask
+            mask = (mask > 0).float()
 
         return image, mask
 
@@ -64,7 +71,7 @@ transform = transforms.Compose([
 # Initialize model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = smp.Unet(encoder_name="resnet18", in_channels=1, classes=2).to(device)
-model.load_state_dict(torch.load('../Model weights/MUIA_model_weights_unetXresnet18.pth', map_location=torch.device('cpu')))
+model.load_state_dict(torch.load('../Model weights/ChrisScanners_model_weights_unetXresnet18_310725.pth', map_location=torch.device('cpu')))
 model.eval()
 
 
@@ -89,8 +96,8 @@ class UnlabeledUltrasoundDataset(Dataset):
 
 
 # Pseudolabelling settings
-unlabeled_image_dir = '../Datasets/Noisy pipes/Noise=0.6/cropped'
-pseudolabel_dir = '../Datasets/Noisy pipes/Noise=0.6/pseudolabels'
+unlabeled_image_dir = '../Datasets/Chris_scanners/Splits/test/half_flipped'
+pseudolabel_dir = '../Datasets/Chris_scanners/Splits/test/pseudolabels_unetXresnet18'
 os.makedirs(pseudolabel_dir, exist_ok=True)
 
 # Pseudolabelling process
@@ -104,8 +111,9 @@ with torch.no_grad():
         pseudolabels = torch.argmax(outputs, dim=1)
 
         for pseudolabel, image_name in zip(pseudolabels, image_names):
+            pseudolabel_name = os.path.splitext(image_name)[0] + '_pseudolabel.png'
             pseudolabel_np = (pseudolabel.cpu().numpy() * 255).astype(np.uint8)
-            pseudolabel_path = os.path.join(pseudolabel_dir, image_name.replace('.png', '_pseudolabel.png'))
+            pseudolabel_path = os.path.join(pseudolabel_dir, pseudolabel_name)
             cv2.imwrite(pseudolabel_path, pseudolabel_np)
 
 
@@ -126,12 +134,17 @@ with open(output_csv_path, 'w', newline='') as csvfile:
         if not filename.endswith('_pseudolabel.png'):
             continue
 
-        pseudolabel_path = os.path.join(pseudolabel_dir, filename)
-        original_img_name = filename.replace('_pseudolabel.png', '.png')
-        original_img_path = os.path.join(unlabeled_image_dir, original_img_name)
+        basename = filename.replace('_pseudolabel.png', '')
+        possible_exts = ['.png', '.JPG']
 
-        if not os.path.exists(original_img_path):
-            print(f"Original image not found: {original_img_path}")
+        for ext in possible_exts:
+            candidate_path = os.path.join(unlabeled_image_dir, basename + ext)
+            if os.path.exists(candidate_path):
+                original_img_path = candidate_path
+                break
+
+        if original_img_path is None:
+            print(f"Original image not found for {filename}")
             continue
 
         # Step 1: Get conversion factor from original image
@@ -151,7 +164,7 @@ with open(output_csv_path, 'w', newline='') as csvfile:
         (y1, x1), (y2, x2) = points
         pixel_distance = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
         try:
-            real_distance_mm = float(50)
+            real_distance_mm = float(20)
         except ValueError:
             print(f"Invalid input. Skipping {filename}.")
             continue
@@ -159,6 +172,7 @@ with open(output_csv_path, 'w', newline='') as csvfile:
         conversion_factor = real_distance_mm / pixel_distance
 
         # Step 2: Load pseudolabel and measure top/bottom extent
+        pseudolabel_path = os.path.join(pseudolabel_dir, filename)
         mask = cv2.imread(pseudolabel_path, cv2.IMREAD_GRAYSCALE)
         row_sums = np.sum(mask > 0, axis=1)
         non_zero_rows = np.where(row_sums > 0)[0]

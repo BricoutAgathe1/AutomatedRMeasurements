@@ -4,10 +4,10 @@ from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
 # Path to the VIA annotations file
-annotations_file = '../Annotations/TM_pipes/Acuson128_final_json.json'
+annotations_file = '../Annotations/Chris_scanners/SamsungR20_LA2-14A_json.json'
 
 # Directory to save mask images
-masks_dir = '../Datasets/TM_pipes/Acuson128'
+masks_dir = '../Datasets/Chris_scanners/Samsung R20/LA2-14A'
 os.makedirs(masks_dir, exist_ok=True)
 
 # Load annotations
@@ -26,7 +26,7 @@ for key, file_annotations in annotations.items():
 
     if width == 0 or height == 0:
         # Load image to get its dimensions if not available in annotations
-        image_path = os.path.join('../Datasets/TM_pipes/Acuson128', filename)
+        image_path = os.path.join('../Datasets/Chris_scanners/Samsung R20/LA2-14A', filename)
         with Image.open(image_path) as img:
             width, height = img.size
 
@@ -67,7 +67,7 @@ for key, file_annotations in annotations.items():
     if not regions:
         continue
 
-    image_path = os.path.join('../Datasets/TM_pipes/Acuson128', filename)
+    image_path = os.path.join('../Datasets/Chris_scanners/Samsung R20/LA2-14A', filename)
     mask_path = os.path.join(masks_dir, f"{os.path.splitext(filename)[0]}_mask.png")
 
     image = Image.open(image_path).convert("RGB")

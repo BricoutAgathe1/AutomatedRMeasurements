@@ -18,7 +18,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QCheckBox, QFrame, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLineEdit,
     QMainWindow, QPlainTextEdit, QProgressBar, QPushButton,
-    QSizePolicy, QTabWidget, QVBoxLayout, QWidget)
+    QSizePolicy, QSpacerItem, QTabWidget, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -299,11 +300,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.label_42, 8, 0, 1, 1)
 
-        self.txtFreqRange = QLineEdit(self.widget_11)
-        self.txtFreqRange.setObjectName(u"txtFreqRange")
-
-        self.gridLayout_4.addWidget(self.txtFreqRange, 15, 1, 1, 1)
-
         self.txtFund = QLineEdit(self.widget_11)
         self.txtFund.setObjectName(u"txtFund")
 
@@ -464,6 +460,10 @@ class Ui_MainWindow(object):
         self.txtDepth.setObjectName(u"txtDepth")
 
         self.gridLayout_4.addWidget(self.txtDepth, 13, 1, 1, 1)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout_4.addItem(self.horizontalSpacer, 15, 1, 1, 1)
 
 
         self.gridLayout_5.addWidget(self.widget_11, 0, 1, 3, 1)
@@ -786,7 +786,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         self.btnSetCrop.setDefault(True)
         self.btnNextImage.setDefault(True)
         self.btnRunBatch.setDefault(True)
