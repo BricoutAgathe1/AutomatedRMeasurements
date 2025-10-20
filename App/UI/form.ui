@@ -1,0 +1,1303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1291</width>
+    <height>757</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1291</width>
+    <height>757</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <family>Verdana</family>
+    <pointsize>11</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(197, 228, 255);</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>1271</width>
+      <height>681</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">font: 12pt &quot;Verdana&quot;;
+color: rgb(48, 48, 48);
+background-color: rgba(215, 236, 255, 180);</string>
+    </property>
+    <property name="tabPosition">
+     <enum>QTabWidget::TabPosition::North</enum>
+    </property>
+    <property name="tabShape">
+     <enum>QTabWidget::TabShape::Rounded</enum>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <property name="elideMode">
+     <enum>Qt::TextElideMode::ElideNone</enum>
+    </property>
+    <widget class="QWidget" name="tabProcessing">
+     <attribute name="title">
+      <string>Processing</string>
+     </attribute>
+     <widget class="QFrame" name="frameImageDisplay">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>10</y>
+        <width>901</width>
+        <height>531</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
+      </property>
+      <widget class="QLabel" name="lblImageDisplay">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>881</width>
+         <height>451</height>
+        </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QWidget" name="widget_6" native="true">
+       <property name="geometry">
+        <rect>
+         <x>7</x>
+         <y>480</y>
+         <width>891</width>
+         <height>45</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="btnSetCrop">
+          <property name="text">
+           <string>Set Crop</string>
+          </property>
+          <property name="default">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnNextImage">
+          <property name="text">
+           <string>Next Image</string>
+          </property>
+          <property name="default">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnBatchCrop">
+          <property name="text">
+           <string>Batch Crop</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QProgressBar" name="progressBar_2">
+          <property name="value">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QLabel" name="label_18">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>151</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font: 700 12pt &quot;Verdana&quot;;</string>
+       </property>
+       <property name="text">
+        <string>2. Image Display</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="lblFolderNumber">
+       <property name="geometry">
+        <rect>
+         <x>830</x>
+         <y>10</y>
+         <width>61</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_5">
+       <property name="geometry">
+        <rect>
+         <x>760</x>
+         <y>10</y>
+         <width>61</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Folder:</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QFrame" name="frameRunBatch">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>547</y>
+        <width>1251</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="label_10">
+         <property name="styleSheet">
+          <string notr="true">font: 700 12pt &quot;Verdana&quot;;</string>
+         </property>
+         <property name="text">
+          <string>4. Batch Processing</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_7" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="btnRunBatch">
+            <property name="text">
+             <string>Run</string>
+            </property>
+            <property name="default">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QProgressBar" name="progressBar">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="frameDataInitialisation">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>341</width>
+        <height>321</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Plain</enum>
+      </property>
+      <property name="midLineWidth">
+       <number>0</number>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_14">
+         <property name="styleSheet">
+          <string notr="true">font: 700 12pt &quot;Verdana&quot;;</string>
+         </property>
+         <property name="text">
+          <string>1. Data Initialisation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_9" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>Enter scanner &amp; Probe name:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="txtScannerName"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QPushButton" name="btnSelectFolder">
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Select Data Folder</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+            <property name="default">
+             <bool>true</bool>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblFolderPath">
+            <property name="styleSheet">
+             <string notr="true">font: italic 8pt &quot;Verdana&quot;;</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QProgressBar" name="progressBarVideo">
+            <property name="value">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_5" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Depth scale orientation:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkOther">
+            <property name="text">
+             <string>Other</string>
+            </property>
+            <property name="tristate">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkVertical">
+            <property name="text">
+             <string>Vertical</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="frameConversion">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>420</y>
+        <width>341</width>
+        <height>121</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
+      </property>
+      <widget class="QLabel" name="label_17">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>315</width>
+         <height>18</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Verdana</family>
+         <pointsize>11</pointsize>
+         <italic>false</italic>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font: 700 11pt &quot;Verdana&quot;;</string>
+       </property>
+       <property name="text">
+        <string>3. Pixel to real-life distance conversion</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="widget_2" native="true">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>34</y>
+         <width>321</width>
+         <height>44</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Enter real distance (mm):</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="txtDistanceMm"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="btnSaveCalibration">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>311</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Save Calibration</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>350</y>
+        <width>321</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: italic 9pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Step 3 becomes available after cropping the first image in step 2. Repeat steps 2 &amp; 3 for all first images in the dataset.</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tabInput">
+     <attribute name="title">
+      <string>Input settings</string>
+     </attribute>
+     <widget class="QFrame" name="frame">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>1271</width>
+        <height>601</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Raised</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="2" column="2">
+        <widget class="QWidget" name="widget_12" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_9">
+          <item>
+           <widget class="QLabel" name="label_58">
+            <property name="styleSheet">
+             <string notr="true">font: 700 11pt &quot;Verdana&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Saving</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnGenerate">
+            <property name="text">
+             <string>Generate spreadsheet</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblStatusInputSettings">
+            <property name="styleSheet">
+             <string notr="true">font: italic 10pt &quot;Verdana&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Status:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1" rowspan="3">
+        <widget class="QWidget" name="widget_11" native="true">
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_42">
+            <property name="text">
+             <string>FPS:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="15" column="1">
+           <widget class="QLineEdit" name="txtFreqRange"/>
+          </item>
+          <item row="17" column="1">
+           <widget class="QLineEdit" name="txtFund"/>
+          </item>
+          <item row="14" column="1">
+           <widget class="QLineEdit" name="txtFocus"/>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_48">
+            <property name="text">
+             <string>Compounding:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QLineEdit" name="txtFPS"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_46">
+            <property name="text">
+             <string>Dyn. range:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_47">
+            <property name="text">
+             <string>Application:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="0">
+           <widget class="QLabel" name="label_39">
+            <property name="text">
+             <string>Other settings (grey map, tint):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="txtPower"/>
+          </item>
+          <item row="12" column="1">
+           <widget class="QLineEdit" name="txtOthersettings"/>
+          </item>
+          <item row="11" column="1">
+           <widget class="QLineEdit" name="txtPersistence"/>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="txtGain"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="txtApp"/>
+          </item>
+          <item row="16" column="0">
+           <widget class="QLabel" name="label_52">
+            <property name="text">
+             <string>Harmonic</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="txtMITI"/>
+          </item>
+          <item row="9" column="1">
+           <widget class="QLineEdit" name="txtCompounding"/>
+          </item>
+          <item row="13" column="0">
+           <widget class="QLabel" name="label_49">
+            <property name="text">
+             <string>Depth (min/preset/max):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_43">
+            <property name="text">
+             <string>Frequency:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="txtDynRange"/>
+          </item>
+          <item row="10" column="1">
+           <widget class="QLineEdit" name="txtSmooth"/>
+          </item>
+          <item row="14" column="0">
+           <widget class="QLabel" name="label_50">
+            <property name="text">
+             <string>Focus (min/preset/max):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="16" column="1">
+           <widget class="QLineEdit" name="txtHarm"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="txtFrequency"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_57">
+            <property name="styleSheet">
+             <string notr="true">font: 700 11pt &quot;Verdana&quot;;
+</string>
+            </property>
+            <property name="text">
+             <string>Settings</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_45">
+            <property name="text">
+             <string>Gain:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="17" column="0">
+           <widget class="QLabel" name="label_44">
+            <property name="text">
+             <string>Fundamental</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QLabel" name="label_41">
+            <property name="text">
+             <string>Smoothing / reduction:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_37">
+            <property name="text">
+             <string>MI &amp; TI:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_38">
+            <property name="text">
+             <string>Power:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
+           <widget class="QLabel" name="label_40">
+            <property name="text">
+             <string>Persistence:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="15" column="0">
+           <widget class="QLabel" name="label_51">
+            <property name="text">
+             <string>Frequencies range:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="13" column="1">
+           <widget class="QLineEdit" name="txtDepth"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QWidget" name="widget_4" native="true">
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="8" column="1">
+           <widget class="QLineEdit" name="txtPhantomMk"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="txtReason"/>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>Date:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_25">
+            <property name="text">
+             <string>Further details:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>Reason for testing:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_27">
+            <property name="text">
+             <string>Phantom mark:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="txtLocation"/>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="txtDetails"/>
+          </item>
+          <item row="9" column="1">
+           <widget class="QLineEdit" name="txtDate"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_26">
+            <property name="text">
+             <string>Location:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_55">
+            <property name="styleSheet">
+             <string notr="true">font: 700 11pt &quot;Verdana&quot;;</string>
+            </property>
+            <property name="text">
+             <string>General</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="2" rowspan="2">
+        <widget class="QWidget" name="widget_10" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QLabel" name="label_53">
+            <property name="styleSheet">
+             <string notr="true">font: 700 11pt &quot;Verdana&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Comments</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_54">
+            <property name="styleSheet">
+             <string notr="true">font: italic 10pt &quot;Verdana&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Please include all comments relating to ergonomics, ease of operation and imaging.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPlainTextEdit" name="txtComments"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0" rowspan="2">
+        <widget class="QWidget" name="widget_8" native="true">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="10" column="0">
+           <widget class="QLabel" name="label_29">
+            <property name="text">
+             <string>Ambient  light &lt; 50 Lux:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="txtSoftwarelvl"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_34">
+            <property name="text">
+             <string>Probe model &amp; s/n:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_31">
+            <property name="text">
+             <string>Visual checks ok (mains plug, cables):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="txtProbeYear"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_56">
+            <property name="styleSheet">
+             <string notr="true">font: 700 11pt &quot;Verdana&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Initial checks &amp; specs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QLineEdit" name="txtBootUp"/>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="txtProbe">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_35">
+            <property name="text">
+             <string>Year of manufacture:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_28">
+            <property name="text">
+             <string>Boot-up time (s):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_32">
+            <property name="text">
+             <string>Year of manufacture:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_33">
+            <property name="text">
+             <string>Software level:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="openExternalLinks">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
+           <widget class="QLabel" name="label_30">
+            <property name="text">
+             <string>At display monitor &lt; 20 Lux: </string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_36">
+            <property name="text">
+             <string>Scanner type &amp; s/n:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="txtScannerType"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="txtScannerYear"/>
+          </item>
+          <item row="9" column="1" alignment="Qt::AlignmentFlag::AlignHCenter">
+           <widget class="QCheckBox" name="btnChecks">
+            <property name="text">
+             <string>Yes</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1" alignment="Qt::AlignmentFlag::AlignHCenter">
+           <widget class="QCheckBox" name="btnAmbientLight">
+            <property name="text">
+             <string>Yes</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="1" alignment="Qt::AlignmentFlag::AlignHCenter">
+           <widget class="QCheckBox" name="btnDisplayLight">
+            <property name="text">
+             <string>Yes</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tabResults">
+     <attribute name="title">
+      <string>Results</string>
+     </attribute>
+     <widget class="QLabel" name="lblResults">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>831</width>
+        <height>601</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="geometry">
+       <rect>
+        <x>950</x>
+        <y>270</y>
+        <width>221</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 700 14pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="title">
+       <string>Measurements</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="styleSheet">
+          <string notr="true">font: 700 12pt &quot;Verdana&quot;;</string>
+         </property>
+         <property name="text">
+          <string>R</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="styleSheet">
+          <string notr="true">font: 700 12pt &quot;Verdana&quot;;</string>
+         </property>
+         <property name="text">
+          <string>DR</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="styleSheet">
+          <string notr="true">font: 700 12pt &quot;Verdana&quot;;</string>
+         </property>
+         <property name="text">
+          <string>LR</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="lblR">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="lblLR">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="lblDR">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="lblScannerNameResults">
+      <property name="geometry">
+       <rect>
+        <x>948</x>
+        <y>170</y>
+        <width>221</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 700 16pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tabAbout">
+     <attribute name="title">
+      <string>About</string>
+     </attribute>
+     <layout class="QVBoxLayout" name="verticalLayout_7">
+      <item>
+       <widget class="QWidget" name="widget_3" native="true">
+        <widget class="QLabel" name="label_4">
+         <property name="geometry">
+          <rect>
+           <x>9</x>
+           <y>9</y>
+           <width>105</width>
+           <height>19</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 700 12pt &quot;Verdana&quot;;
+color: rgb(24, 48, 72);</string>
+         </property>
+         <property name="text">
+          <string>Instructions</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_6">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>210</y>
+           <width>701</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>1. Enter scanner &amp; probe name into the text box, then select the folder containing the dataset. </string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::TextFormat::AutoText</enum>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_8">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>550</y>
+           <width>52</width>
+           <height>19</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 700 12pt &quot;Verdana&quot;;
+color: rgb(24, 48, 72);</string>
+         </property>
+         <property name="text">
+          <string>About</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_15">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>290</y>
+           <width>691</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>2. Using your mouse, crop the image loaded in &quot;2. Image display&quot; by drawing a square on the image such that the top of the square lines up with the top of the field-of-view and the depth scale is visible (see image on the right).</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_19">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>380</y>
+           <width>1231</width>
+           <height>38</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>3. After cropping the first image, step 3 will become available. Draw a line on the displayed cropped image on the depth scale, and enter in the allocated box the corresponding real-life distance in mm. Press &quot;Next image&quot;.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_20">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>460</y>
+           <width>1231</width>
+           <height>38</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>4. Once all the images have been cropped and the conversion factors entered, press the &quot;Run&quot; button in step 4. The results will be displayed in the &quot;Results&quot; tab. If wanting to add in the spreadsheet all the scanner details, do so in the &quot;Input settings&quot; tab.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_21">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>50</y>
+           <width>452</width>
+           <height>19</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Please ensure the data folder is organised as follows: </string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_22">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>80</y>
+           <width>179</width>
+           <height>95</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: italic 12pt &quot;Verdana&quot;;</string>
+         </property>
+         <property name="text">
+          <string>&gt; ScannerName
+     &gt; 8mm top.mp4
+     &gt; 8mm bot.mp4
+     ...
+     &gt; 0.4mm bot.mp4</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_13">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>580</y>
+           <width>1231</width>
+           <height>38</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>This application was created by Agathe Bricout as part of her PhD thesis, relying on the work by Pye &amp; Ellis (2004) on the resolution integral. This research is supported by the Precision Medicine Doctoral Training Programme, the Medical Research Council, NHS Lothian and IMV Imaging.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLabel" name="lblImageGuideCrop">
+         <property name="geometry">
+          <rect>
+           <x>730</x>
+           <y>20</y>
+           <width>491</width>
+           <height>321</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>911</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">font: 700 16pt &quot;Verdana&quot;;
+color: rgb(26, 51, 77);</string>
+    </property>
+    <property name="text">
+     <string>Automated Resolution Integral calculations on the Edinburgh Pipe Phantom</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblStatus">
+    <property name="geometry">
+     <rect>
+      <x>960</x>
+      <y>15</y>
+      <width>311</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">font: italic 11pt &quot;Verdana&quot;;
+color: rgb(43, 43, 43);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
