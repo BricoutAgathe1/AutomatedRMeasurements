@@ -1,0 +1,24 @@
+# Virtual environments
+.venv/
+venv/
+
+# Datasets and large files
+Datasets/
+data/
+*.png
+*.jpg
+*.jpeg
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE / editor settings
+.idea/
+.vscode/
+
+# OS files
+Thumbs.db
+.DS_Store
