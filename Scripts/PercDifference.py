@@ -14,8 +14,8 @@ def extract_top_bottom_positions(mask):
     return None, None
 
 # Paths to manual and ML masks
-manual_mask_dir = '../Datasets/Chris_scanners/Splits/test/masks'
-ml_mask_dir = '../Datasets/Chris_scanners/Splits/test/pseudolabels_unetXresnet18'
+manual_mask_dir = '../Datasets/Chris_scanners/Splits5/test/masks/half_flipped'
+ml_mask_dir = '../Datasets/Chris_scanners/Splits5/test/pseudolabels_MIApaper_split5'
 
 # Get list of manual mask files and infer corresponding pseudolabel filenames
 manual_mask_files = [f for f in os.listdir(manual_mask_dir) if f.endswith("_mask.png")]
@@ -64,7 +64,7 @@ for manual_file in manual_mask_files:
         })
 
 # Save distances and percentage differences to a JSON file
-with open('../Datasets/Chris_scanners/Splits/test/pseudolabels_unetXresnet18/computed_distances.json', 'w') as f:
+with open('../Datasets/Chris_scanners/Splits5/test/pseudolabels_MIApaper_split5/computed_distances.json', 'w') as f:
     json.dump(distances, f, indent=4)
 
 # Compute **one overall** percentage difference and standard deviation

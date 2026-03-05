@@ -4,8 +4,8 @@ import shutil
 
 # Define paths
 parent_directory = "../Datasets/Chris_scanners/Cropped"  # Directory containing all folders
-merged_folder = "../Datasets/Chris_scanners/Merged"  # Destination folder for all images and masks
-output_dir = "../Datasets/Chris_scanners/Splits"  # Output folder for dataset splits
+merged_folder = "../Datasets/Chris_scanners/Merged5"  # Destination folder for all images and masks
+output_dir = "../Datasets/Chris_scanners/Splits5"  # Output folder for dataset splits
 
 # Create merged folder if it doesn't exist
 os.makedirs(merged_folder, exist_ok=True)

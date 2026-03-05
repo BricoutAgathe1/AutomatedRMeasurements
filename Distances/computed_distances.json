@@ -1,0 +1,452 @@
+[
+    {
+        "MaskFile": "Acuson128_VCEImage005",
+        "ManualTop": 84,
+        "ManualBottom": 172,
+        "MLTop": 83,
+        "MLBottom": 167,
+        "TopPercentageDifference": 1.1904761904761905,
+        "BottomPercentageDifference": 2.9069767441860463
+    },
+    {
+        "MaskFile": "Acuson128_VCEImage011",
+        "ManualTop": 98,
+        "ManualBottom": 117,
+        "MLTop": 74,
+        "MLBottom": 113,
+        "TopPercentageDifference": 24.489795918367346,
+        "BottomPercentageDifference": 3.418803418803419
+    },
+    {
+        "MaskFile": "Acuson128_VCEImage035",
+        "ManualTop": 97,
+        "ManualBottom": 162,
+        "MLTop": 96,
+        "MLBottom": 157,
+        "TopPercentageDifference": 1.0309278350515463,
+        "BottomPercentageDifference": 3.0864197530864197
+    },
+    {
+        "MaskFile": "Aloka_VCEImage012",
+        "ManualTop": 99,
+        "ManualBottom": 150,
+        "MLTop": 94,
+        "MLBottom": 148,
+        "TopPercentageDifference": 5.05050505050505,
+        "BottomPercentageDifference": 1.3333333333333335
+    },
+    {
+        "MaskFile": "Aloka_VCEImage014",
+        "ManualTop": 89,
+        "ManualBottom": 153,
+        "MLTop": 81,
+        "MLBottom": 152,
+        "TopPercentageDifference": 8.98876404494382,
+        "BottomPercentageDifference": 0.6535947712418301
+    },
+    {
+        "MaskFile": "Aloka_VCEImage021",
+        "ManualTop": 88,
+        "ManualBottom": 166,
+        "MLTop": 71,
+        "MLBottom": 162,
+        "TopPercentageDifference": 19.318181818181817,
+        "BottomPercentageDifference": 2.4096385542168677
+    },
+    {
+        "MaskFile": "Aloka_VCEImage024",
+        "ManualTop": 85,
+        "ManualBottom": 152,
+        "MLTop": 67,
+        "MLBottom": 158,
+        "TopPercentageDifference": 21.176470588235293,
+        "BottomPercentageDifference": 3.9473684210526314
+    },
+    {
+        "MaskFile": "Aloka_VCEImage029",
+        "ManualTop": 50,
+        "ManualBottom": 130,
+        "MLTop": 48,
+        "MLBottom": 135,
+        "TopPercentageDifference": 4.0,
+        "BottomPercentageDifference": 3.8461538461538463
+    },
+    {
+        "MaskFile": "AspenFund_VCEImage004",
+        "ManualTop": 94,
+        "ManualBottom": 117,
+        "MLTop": 88,
+        "MLBottom": 117,
+        "TopPercentageDifference": 6.382978723404255,
+        "BottomPercentageDifference": 0.0
+    },
+    {
+        "MaskFile": "AspenFund_VCEImage012",
+        "ManualTop": 47,
+        "ManualBottom": 79,
+        "MLTop": 44,
+        "MLBottom": 80,
+        "TopPercentageDifference": 6.382978723404255,
+        "BottomPercentageDifference": 1.2658227848101267
+    },
+    {
+        "MaskFile": "AspenFund_VCEImage020",
+        "ManualTop": 28,
+        "ManualBottom": 97,
+        "MLTop": 31,
+        "MLBottom": 97,
+        "TopPercentageDifference": 10.714285714285714,
+        "BottomPercentageDifference": 0.0
+    },
+    {
+        "MaskFile": "AspenFund_VCEImage023",
+        "ManualTop": 113,
+        "ManualBottom": 202,
+        "MLTop": 106,
+        "MLBottom": 202,
+        "TopPercentageDifference": 6.1946902654867255,
+        "BottomPercentageDifference": 0.0
+    },
+    {
+        "MaskFile": "AspenFund_VCEImage025",
+        "ManualTop": 153,
+        "ManualBottom": 212,
+        "MLTop": 152,
+        "MLBottom": 213,
+        "TopPercentageDifference": 0.6535947712418301,
+        "BottomPercentageDifference": 0.4716981132075472
+    },
+    {
+        "MaskFile": "AspenFund_VCEImage027",
+        "ManualTop": 22,
+        "ManualBottom": 147,
+        "MLTop": 6,
+        "MLBottom": 140,
+        "TopPercentageDifference": 72.72727272727273,
+        "BottomPercentageDifference": 4.761904761904762
+    },
+    {
+        "MaskFile": "AspenFund_VCEImage031",
+        "ManualTop": 77,
+        "ManualBottom": 195,
+        "MLTop": 75,
+        "MLBottom": 192,
+        "TopPercentageDifference": 2.5974025974025974,
+        "BottomPercentageDifference": 1.5384615384615385
+    },
+    {
+        "MaskFile": "AspenHarm_VCEImage002",
+        "ManualTop": 85,
+        "ManualBottom": 152,
+        "MLTop": 89,
+        "MLBottom": 173,
+        "TopPercentageDifference": 4.705882352941177,
+        "BottomPercentageDifference": 13.815789473684212
+    },
+    {
+        "MaskFile": "AspenHarm_VCEImage012",
+        "ManualTop": 56,
+        "ManualBottom": 106,
+        "MLTop": 51,
+        "MLBottom": 110,
+        "TopPercentageDifference": 8.928571428571429,
+        "BottomPercentageDifference": 3.7735849056603774
+    },
+    {
+        "MaskFile": "AspenHarm_VCEImage037",
+        "ManualTop": 98,
+        "ManualBottom": 195,
+        "MLTop": 101,
+        "MLBottom": 189,
+        "TopPercentageDifference": 3.061224489795918,
+        "BottomPercentageDifference": 3.076923076923077
+    },
+    {
+        "MaskFile": "AspenHarm_VCEImage040",
+        "ManualTop": 92,
+        "ManualBottom": 201,
+        "MLTop": 95,
+        "MLBottom": 198,
+        "TopPercentageDifference": 3.260869565217391,
+        "BottomPercentageDifference": 1.4925373134328357
+    },
+    {
+        "MaskFile": "Capasee_2002_VCEImage008",
+        "ManualTop": 114,
+        "ManualBottom": 158,
+        "MLTop": 119,
+        "MLBottom": 174,
+        "TopPercentageDifference": 4.385964912280701,
+        "BottomPercentageDifference": 10.126582278481013
+    },
+    {
+        "MaskFile": "Capasee_2002_VCEImage016",
+        "ManualTop": 98,
+        "ManualBottom": 176,
+        "MLTop": 98,
+        "MLBottom": 177,
+        "TopPercentageDifference": 0.0,
+        "BottomPercentageDifference": 0.5681818181818182
+    },
+    {
+        "MaskFile": "Capasee_2002_VCEImage025",
+        "ManualTop": 59,
+        "ManualBottom": 149,
+        "MLTop": 57,
+        "MLBottom": 148,
+        "TopPercentageDifference": 3.389830508474576,
+        "BottomPercentageDifference": 0.6711409395973155
+    },
+    {
+        "MaskFile": "Capasee_2002_VCEImage041",
+        "ManualTop": 50,
+        "ManualBottom": 148,
+        "MLTop": 48,
+        "MLBottom": 148,
+        "TopPercentageDifference": 4.0,
+        "BottomPercentageDifference": 0.0
+    },
+    {
+        "MaskFile": "Capasee_2009_VCEImage018",
+        "ManualTop": 83,
+        "ManualBottom": 163,
+        "MLTop": 89,
+        "MLBottom": 211,
+        "TopPercentageDifference": 7.228915662650602,
+        "BottomPercentageDifference": 29.447852760736197
+    },
+    {
+        "MaskFile": "Capasee_2009_VCEImage019",
+        "ManualTop": 79,
+        "ManualBottom": 174,
+        "MLTop": 80,
+        "MLBottom": 173,
+        "TopPercentageDifference": 1.2658227848101267,
+        "BottomPercentageDifference": 0.5747126436781609
+    },
+    {
+        "MaskFile": "Capasee_2009_VCEImage022",
+        "ManualTop": 116,
+        "ManualBottom": 212,
+        "MLTop": 112,
+        "MLBottom": 204,
+        "TopPercentageDifference": 3.4482758620689653,
+        "BottomPercentageDifference": 3.7735849056603774
+    },
+    {
+        "MaskFile": "Capasee_2009_VCEImage028",
+        "ManualTop": 96,
+        "ManualBottom": 210,
+        "MLTop": 96,
+        "MLBottom": 209,
+        "TopPercentageDifference": 0.0,
+        "BottomPercentageDifference": 0.4761904761904762
+    },
+    {
+        "MaskFile": "Capasee_2009_VCEImage031",
+        "ManualTop": 155,
+        "ManualBottom": 216,
+        "MLTop": 159,
+        "MLBottom": 217,
+        "TopPercentageDifference": 2.5806451612903225,
+        "BottomPercentageDifference": 0.4629629629629629
+    },
+    {
+        "MaskFile": "Hitachi420_VCEImage007",
+        "ManualTop": 71,
+        "ManualBottom": 137,
+        "MLTop": 78,
+        "MLBottom": 126,
+        "TopPercentageDifference": 9.859154929577464,
+        "BottomPercentageDifference": 8.02919708029197
+    },
+    {
+        "MaskFile": "Hitachi420_VCEImage021",
+        "ManualTop": 85,
+        "ManualBottom": 178,
+        "MLTop": 85,
+        "MLBottom": 183,
+        "TopPercentageDifference": 0.0,
+        "BottomPercentageDifference": 2.8089887640449436
+    },
+    {
+        "MaskFile": "Hitachi420_VCEImage029",
+        "ManualTop": 86,
+        "ManualBottom": 161,
+        "MLTop": 89,
+        "MLBottom": 177,
+        "TopPercentageDifference": 3.488372093023256,
+        "BottomPercentageDifference": 9.937888198757763
+    },
+    {
+        "MaskFile": "Hitachi420_VCEImage042",
+        "ManualTop": 35,
+        "ManualBottom": 104,
+        "MLTop": 33,
+        "MLBottom": 103,
+        "TopPercentageDifference": 5.714285714285714,
+        "BottomPercentageDifference": 0.9615384615384616
+    },
+    {
+        "MaskFile": "Hitachi6500_VCEImage013",
+        "ManualTop": 101,
+        "ManualBottom": 117,
+        "MLTop": 100,
+        "MLBottom": 120,
+        "TopPercentageDifference": 0.9900990099009901,
+        "BottomPercentageDifference": 2.564102564102564
+    },
+    {
+        "MaskFile": "Hitachi6500_VCEImage015",
+        "ManualTop": 82,
+        "ManualBottom": 118,
+        "MLTop": 82,
+        "MLBottom": 118,
+        "TopPercentageDifference": 0.0,
+        "BottomPercentageDifference": 0.0
+    },
+    {
+        "MaskFile": "Hitachi6500_VCEImage044",
+        "ManualTop": 53,
+        "ManualBottom": 167,
+        "MLTop": 52,
+        "MLBottom": 178,
+        "TopPercentageDifference": 1.8867924528301887,
+        "BottomPercentageDifference": 6.58682634730539
+    },
+    {
+        "MaskFile": "Hitachi6500_VCEImage049",
+        "ManualTop": 67,
+        "ManualBottom": 187,
+        "MLTop": 66,
+        "MLBottom": 185,
+        "TopPercentageDifference": 1.4925373134328357,
+        "BottomPercentageDifference": 1.06951871657754
+    },
+    {
+        "MaskFile": "Sienna_VCEImage010",
+        "ManualTop": 101,
+        "ManualBottom": 118,
+        "MLTop": 100,
+        "MLBottom": 117,
+        "TopPercentageDifference": 0.9900990099009901,
+        "BottomPercentageDifference": 0.847457627118644
+    },
+    {
+        "MaskFile": "Sienna_VCEImage037",
+        "ManualTop": 32,
+        "ManualBottom": 116,
+        "MLTop": 33,
+        "MLBottom": 121,
+        "TopPercentageDifference": 3.125,
+        "BottomPercentageDifference": 4.310344827586207
+    },
+    {
+        "MaskFile": "Sienna_VCEImage043",
+        "ManualTop": 111,
+        "ManualBottom": 207,
+        "MLTop": 109,
+        "MLBottom": 215,
+        "TopPercentageDifference": 1.8018018018018018,
+        "BottomPercentageDifference": 3.864734299516908
+    },
+    {
+        "MaskFile": "Sienna_VCEImage046",
+        "ManualTop": 110,
+        "ManualBottom": 217,
+        "MLTop": 110,
+        "MLBottom": 221,
+        "TopPercentageDifference": 0.0,
+        "BottomPercentageDifference": 1.8433179723502304
+    },
+    {
+        "MaskFile": "Sienna_VCEImage048",
+        "ManualTop": 112,
+        "ManualBottom": 222,
+        "MLTop": 117,
+        "MLBottom": 214,
+        "TopPercentageDifference": 4.464285714285714,
+        "BottomPercentageDifference": 3.6036036036036037
+    },
+    {
+        "MaskFile": "Sonosite180Plus_VCEImage005",
+        "ManualTop": 113,
+        "ManualBottom": 177,
+        "MLTop": 115,
+        "MLBottom": 175,
+        "TopPercentageDifference": 1.7699115044247788,
+        "BottomPercentageDifference": 1.1299435028248588
+    },
+    {
+        "MaskFile": "Sonosite180Plus_VCEImage023",
+        "ManualTop": 72,
+        "ManualBottom": 151,
+        "MLTop": 70,
+        "MLBottom": 151,
+        "TopPercentageDifference": 2.7777777777777777,
+        "BottomPercentageDifference": 0.0
+    },
+    {
+        "MaskFile": "Sonosite180Plus_VCEImage025",
+        "ManualTop": 79,
+        "ManualBottom": 144,
+        "MLTop": 68,
+        "MLBottom": 147,
+        "TopPercentageDifference": 13.924050632911392,
+        "BottomPercentageDifference": 2.083333333333333
+    },
+    {
+        "MaskFile": "Sonosite180Plus_VCEImage026",
+        "ManualTop": 88,
+        "ManualBottom": 167,
+        "MLTop": 87,
+        "MLBottom": 172,
+        "TopPercentageDifference": 1.1363636363636365,
+        "BottomPercentageDifference": 2.9940119760479043
+    },
+    {
+        "MaskFile": "Sonosite180Plus_VCEImage034",
+        "ManualTop": 40,
+        "ManualBottom": 89,
+        "MLTop": 36,
+        "MLBottom": 96,
+        "TopPercentageDifference": 10.0,
+        "BottomPercentageDifference": 7.865168539325842
+    },
+    {
+        "MaskFile": "Sonosite180Plus_VCEImage036",
+        "ManualTop": 37,
+        "ManualBottom": 97,
+        "MLTop": 35,
+        "MLBottom": 99,
+        "TopPercentageDifference": 5.405405405405405,
+        "BottomPercentageDifference": 2.0618556701030926
+    },
+    {
+        "MaskFile": "Sonosite180_VCEImage004",
+        "ManualTop": 107,
+        "ManualBottom": 166,
+        "MLTop": 105,
+        "MLBottom": 171,
+        "TopPercentageDifference": 1.8691588785046727,
+        "BottomPercentageDifference": 3.0120481927710845
+    },
+    {
+        "MaskFile": "Sonosite180_VCEImage022",
+        "ManualTop": 71,
+        "ManualBottom": 172,
+        "MLTop": 68,
+        "MLBottom": 172,
+        "TopPercentageDifference": 4.225352112676056,
+        "BottomPercentageDifference": 0.0
+    },
+    {
+        "MaskFile": "Sonosite180_VCEImage030",
+        "ManualTop": 60,
+        "ManualBottom": 123,
+        "MLTop": 56,
+        "MLBottom": 119,
+        "TopPercentageDifference": 6.666666666666667,
+        "BottomPercentageDifference": 3.2520325203252036
+    }
+]

@@ -3,12 +3,12 @@ import csv
 import torch
 import numpy as np
 import cv2
-from medpy.metric.binary import hd
+from medpy.metric.binary import hd95, hd, jc, precision, assd
 
 # Paths
-gt_folder = '../Datasets/Chris_scanners/Splits/test/masks'
-pseudo_folder = '../Datasets/Chris_scanners/Splits/test/pseudolabels_unetXresnet18'
-output_csv = '../Datasets/Chris_scanners/Splits/test/pseudolabels_unetXresnet18/Hausdorff_Dice_metrics.csv'
+gt_folder = '../Datasets/Chris_scanners/Splits5/test/masks/half_flipped'
+pseudo_folder = '../Datasets/Chris_scanners/Splits5/test/pseudolabels_MIApaper_split5'
+output_csv = '../Datasets/Chris_scanners/Splits5/test/pseudolabels_MIApaper_split5/Full_metrics.csv'
 
 # Dice and Hausdorff functions
 def dice_score(pred, target):
@@ -26,13 +26,45 @@ def hausdorff_distance(pred, target):
         return float('inf')
     return hd(pred_np, target_np)
 
+def hausdorff_distance95(pred, target):
+    pred_np = (pred.cpu().numpy() > 0).astype(int)
+    target_np = (target.cpu().numpy() > 0).astype(int)
+    if np.sum(pred_np) == 0 or np.sum(target_np) == 0:
+        return float('inf')
+    return hd95(pred_np, target_np)
+
+def jaccard(pred, target):
+    pred_np = (pred.cpu().numpy() > 0).astype(int)
+    target_np = (target.cpu().numpy() > 0).astype(int)
+    if np.sum(pred_np) == 0 or np.sum(target_np) == 0:
+        return 1.0
+    return jc(pred_np, target_np)
+
+def precision_score(pred, target):
+    pred_np = (pred.cpu().numpy() > 0).astype(int)
+    target_np = (target.cpu().numpy() > 0).astype(int)
+    if np.sum(pred_np) == 0:
+        return 1.0
+    return precision(pred_np, target_np)
+
+def assd_score(pred, target):
+    pred_np = (pred.cpu().numpy() > 0).astype(int)
+    target_np = (target.cpu().numpy() > 0).astype(int)
+    if np.sum(pred_np) == 0 or np.sum(target_np) == 0:
+        return float('inf')
+    return assd(pred_np, target_np)
+
 # Evaluation loop
 dice_scores = []
 hausdorff_scores = []
+hausdorff95_scores = []
+jaccard_coeffs = []
+precision_scores = []
+assd_scores = []
 
 with open(output_csv, 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(['Filename', 'Dice Score', 'Hausdorff Distance'])
+    writer.writerow(['Filename', 'Dice Score', 'Hausdorff Distance', 'Hausdorff 95 Distance', 'Jaccard Index', 'Precision', 'ASSD'])
 
     for fname in os.listdir(gt_folder):
         if fname.endswith('_mask.png'):
@@ -57,18 +89,36 @@ with open(output_csv, 'w', newline='') as file:
             # Compute metrics
             dice = dice_score(pseudo_tensor, gt_tensor).item()
             hausdorff = hausdorff_distance(pseudo_tensor, gt_tensor)
+            hausdorff95 = hausdorff_distance95(pseudo_tensor, gt_tensor)
+            jaccard_idx = jaccard(pseudo_tensor, gt_tensor)
+            precision_metric = precision_score(pseudo_tensor, gt_tensor)
+            assd_metric = assd_score(pseudo_tensor, gt_tensor)
 
             dice_scores.append(dice)
+            jaccard_coeffs.append(jaccard_idx)
+            precision_scores.append(precision_metric)
+            assd_scores.append(assd_metric)
+
             if hausdorff != float('inf'):
                 hausdorff_scores.append(hausdorff)
+            if hausdorff95 != float('inf'):
+                hausdorff95_scores.append(hausdorff95)
 
-            writer.writerow([fname, dice, hausdorff])
-            print(f"{fname}: Dice = {dice:.4f}, Hausdorff = {hausdorff:.2f}")
+            writer.writerow([fname, dice, hausdorff, hausdorff95, jaccard_idx, precision_metric, assd_metric])
+            print(f"{fname}: Dice = {dice:.4f}, Hausdorff = {hausdorff:.2f}, Hausdorff95 = {hausdorff95:.2f}, Jaccard = {jaccard_idx:.4f}, Precision = {precision_metric:.4f}, ASSD = {assd_metric:.2f}")
 
 # Summary
 mean_dice = np.mean(dice_scores)
 mean_hd = np.mean(hausdorff_scores) if hausdorff_scores else float('inf')
+mean_hd95 = np.mean(hausdorff95_scores) if hausdorff95_scores else float('inf')
+mean_jac = np.mean(jaccard_coeffs) if jaccard_coeffs else float('inf')
+mean_precision = np.mean(precision_scores) if precision_scores else float('inf')
+mean_assd = np.mean(assd_scores) if assd_scores else float('inf')
 
 print(f"\n✅ Average Dice Score: {mean_dice:.4f}")
 print(f"✅ Average Hausdorff Distance: {mean_hd:.2f}")
+print(f"✅ Average Hausdorff 95 Distance: {mean_hd95:.2f}")
+print(f"✅ Average Jaccard Index: {mean_jac:.4f}")
+print(f"✅ Average Precision: {mean_precision:.4f}")
+print(f"✅ Average ASSD: {mean_assd:.2f}")
 print(f"📄 Metrics saved to: {output_csv}")

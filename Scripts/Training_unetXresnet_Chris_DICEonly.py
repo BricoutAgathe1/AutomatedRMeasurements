@@ -7,7 +7,6 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 import segmentation_models_pytorch as smp
 from PIL import Image
-from medpy.metric.binary import hd95 as hd
 import csv
 import time
 
@@ -95,50 +94,32 @@ def dice_score(pred, target):
     intersection = (pred * target).sum()
     return (2. * intersection) / (pred.sum() + target.sum() + 1e-6)
 
-
-# Define Hausdorff Distance function
-def hausdorff_distance(pred, target):
-    pred_np = (pred.cpu().numpy() > 0).astype(int)
-    target_np = (target.cpu().numpy() > 0).astype(int)
-
-    # Check if both pred and target contain any binary object
-    if np.sum(pred_np) == 0 or np.sum(target_np) == 0:
-        # Return a large value or None to indicate an invalid distance
-        return float('inf')  # Optionally, you could return `None` and handle it later
-
-    return hd(pred_np, target_np)
-
-
 # Initialize model
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 model = smp.Unet(encoder_name="resnet18", in_channels=1, classes=2).to(device)
 
-
 # Criterion and optimizer
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-# scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=5, factor=0.5, threshold=0.0001, threshold_mode='rel')
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', patience=5, factor=0.5) # for scheduler step on Dice
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3, factor=0.5)
 
 # Ensure the save directory exists
 save_dir = '../Model weights'
 os.makedirs(save_dir, exist_ok=True)
-best_weights_path = os.path.join(save_dir, 'ChrisScanners_model_weights_unetXresnet18_HD95.pth')
+best_weights_path = os.path.join(save_dir, 'ChrisScanners_model_weights_unetXresnet18_DICEonly.pth')
 
 # Training and validation loop
 num_epochs = 50
 
 # Initialise variables
 best_dice = -float('inf')
-best_hausdorff = float('inf')
-dice_tolerance = 0.01  # Tolerance for Dice improvement 1%
 
 # Define a file path for saving metrics
-csv_file_path = "../ChrisScanners_training_metrics_50epochs_unetXresnet18_HD95.csv"
+csv_file_path = "../ChrisScanners_training_metrics_50epochs_unetXresnet18_DICEonly.csv"
 # Initialize the CSV file with headers
 with open(csv_file_path, mode='w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(["Epoch", "Train Loss", "Val Loss", "Dice Score", "Hausdorff Distance"])
+    writer.writerow(["Epoch", "Train Loss", "Val Loss", "Dice Score"])
 
 
 for epoch in range(num_epochs):
@@ -163,8 +144,7 @@ for epoch in range(num_epochs):
 
     # Validation loop
     model.eval()
-    val_loss, dice_total, hausdorff_total = 0.0, 0.0, 0.0
-    hausdorff_count = 0
+    val_loss, dice_total= 0.0, 0.0
     with torch.no_grad():
         for images, masks in val_loader:
             images, masks = images.to(device), masks.to(device).long().squeeze(1)
@@ -176,50 +156,27 @@ for epoch in range(num_epochs):
 
             for pred, mask in zip(preds, masks):
                 dice_val = dice_score(pred, mask).item()
-                hausdorff_val = hausdorff_distance(pred, mask)
 
                 dice_total += dice_val
-                if hausdorff_val != float('inf'):
-                    hausdorff_total += hausdorff_val
-                    hausdorff_count += 1
 
-    # Compute average Dice and median Hausdorff, with checks
+    # Compute average Dice and Hausdorff, with checks
     avg_val_loss = val_loss / len(val_loader)
     avg_dice = float(dice_total / len(val_loader.dataset))  # Average Dice across dataset
-    hd95_values = []
 
-    for pred, mask in zip(preds, masks):
-        hd95 = hausdorff_distance(pred, mask)
-        if hd95 != float('inf'):
-            hd95_values.append(hd95)
+    scheduler.step(avg_val_loss)
 
-    median_hausdorff = np.median(hd95_values) if hd95_values else float('inf')
-
-    #scheduler.step(avg_val_loss)
-    scheduler.step(avg_dice)  # Step scheduler based on Dice score
-
-    print(f"Epoch {epoch + 1}/{num_epochs}, Val Loss: {avg_val_loss}, Dice: {avg_dice}, Hausdorff (median): {median_hausdorff}")
+    print(f"Epoch {epoch + 1}/{num_epochs}, Val Loss: {avg_val_loss}, Dice: {avg_dice}")
 
     # Log metrics for each epoch
     with open(csv_file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([epoch, train_loss, avg_val_loss, avg_dice, median_hausdorff])
+        writer.writerow([epoch, train_loss, avg_val_loss, avg_dice])
 
-    # Check if Dice is good enough
-    if avg_dice >= best_dice - dice_tolerance:
-
-        # If Dice truly improves, reset HD95 tracking
-        if avg_dice > best_dice:
-            best_dice = avg_dice
-            best_hausdorff = median_hausdorff
-            torch.save(model.state_dict(), best_weights_path)
-            print(f"New best Dice model saved: Dice={avg_dice:.4f}, HD95={median_hausdorff:.2f}")
-
-        # Dice is within tolerance → use HD95 to break tie
-        elif median_hausdorff < best_hausdorff:
-            best_hd95 = median_hausdorff
-            torch.save(model.state_dict(), best_weights_path)
-            print(f"Balanced model saved (better HD95): Dice={avg_dice:.4f}, HD95={median_hausdorff:.2f}")
+    # Save weights if either Dice improves or Hausdorff decreases
+    if avg_dice > best_dice:
+        best_dice = max(avg_dice, best_dice)
+        torch.save(model.state_dict(), best_weights_path)
+        print(f"Best model saved with Dice: {avg_dice} at {best_weights_path}")
 
 print(f"Metrics saved to {csv_file_path}")
 print("--- Training complete: %s seconds ---" % (time.time() - start_time))

@@ -4,10 +4,10 @@ import random
 from pathlib import Path
 
 # Paths for the image and mask directories
-train_images_folder = '../Datasets/Chris_scanners/Splits/test/images'
-train_masks_folder = '../Datasets/Chris_scanners/Splits/test/masks'
-augmented_images_folder = '../Datasets/Chris_scanners/Splits/test/half_flipped'
-augmented_masks_folder = '../Datasets/Chris_scanners/Splits/test/half_flipped'
+train_images_folder = '../Datasets/Chris_scanners/Splits3/test/images'
+train_masks_folder = '../Datasets/Chris_scanners/Splits3/test/masks'
+augmented_images_folder = '../Datasets/Chris_scanners/Splits3/test/half_flipped'
+augmented_masks_folder = '../Datasets/Chris_scanners/Splits3/test/half_flipped'
 
 # Create augmented folders if they don’t exist
 os.makedirs(augmented_images_folder, exist_ok=True)
