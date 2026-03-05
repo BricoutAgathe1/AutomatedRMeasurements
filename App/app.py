@@ -13,6 +13,8 @@ import openpyxl
 from openpyxl.utils import get_column_letter
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import math
 
 
 class ImageLabel(QtWidgets.QLabel):
@@ -440,6 +442,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lblStatus.setText("Status: Batch segmenting images...")
         self.progressBar.setEnabled(True)
         self.btnRunBatch.setEnabled(False)
+        self.btnBatchCrop.setEnabled(False)
 
         # Load model
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -457,7 +460,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.worker.finished.connect(self.export_results)
         self.worker.start()
 
-    def update_excel_with_pipe_lengths(xlsx_path, pipe_lengths):
+    def update_excel_with_pipe_lengths(self, xlsx_path, pipe_lengths):
         wb = openpyxl.load_workbook(xlsx_path)
 
         sheet_name = "PipeLengths"
@@ -477,7 +480,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         wb.save(xlsx_path)
 
     def export_results(self):
-        xlsx_path = "experiment_results.xlsx"
+        xlsx_path = "results.xlsx"
         exporter = ResultsExporter(xlsx_path)
 
         # Cropping
@@ -513,47 +516,91 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plot_pipe_lengths_in_label(self.lblResults, xlsx_path="results.xlsx")
 
     def plot_pipe_lengths_in_label(self, lbl, xlsx_path="results.xlsx"):
-
-        # --- Read pipe lengths from Excel ---
+        # Read pipe lengths
         wb = openpyxl.load_workbook(xlsx_path, data_only=True)
         if "PipeLengths" not in wb.sheetnames:
             return
         ws = wb["PipeLengths"]
         rows = list(ws.iter_rows(values_only=True))[1:]  # skip header
-
         if not rows:
             return
 
         diameters = np.array([float(d) for d, l in rows])
         lengths = np.array([float(l) for d, l in rows])
-        inv_diameters = 1 / diameters
 
-        # --- Calculate AUC ---
-        auc = np.trapz(lengths, x=inv_diameters)
+        # Vectorized inverse-diameter computation (replaces the broken for-loop)
+        # original per-point formula: inv_d = 2 / sqrt(d*d / cos(40deg))
+        cos40 = math.cos(math.radians(40))
+        inv_d = 2.0 / np.sqrt(diameters ** 2 / cos40)
 
-        # --- Create Matplotlib figure ---
-        fig = Figure(figsize=(5, 4))
-        ax = fig.add_subplot(111)
-        ax.plot(inv_diameters, lengths, marker='o', linestyle='-', color='blue', label='Pipe lengths')
-        ax.set_xlabel("1 / Pipe Diameter (1/mm)")
-        ax.set_ylabel("Pipe Length (mm)")
-        ax.set_title(f"Pipe Length vs alpha (R={auc:.3f})")
+        order = np.argsort(inv_d)
+        x = inv_d[order]
+        y = lengths[order]
+
+        lastSeen = 0.7
+        x_end = 2 / math.sqrt(lastSeen * lastSeen / cos40)
+
+        # Build augmented dataset: include measured points + (x_end, 0)
+        x_aug = np.concatenate((x, [x_end]))
+        y_aug = np.concatenate((y, [0.0]))
+
+        # sort augmented arrays by x (necessary for interpolation/trapz)
+        idx = np.argsort(x_aug)
+        x_aug = x_aug[idx]
+        y_aug = y_aug[idx]
+
+        # Interpolate on a fine grid from 0 to x_end (ensure xi includes x_end)
+        xi = np.linspace(0.0, x_end, 800)
+        yi = np.interp(xi, x_aug, y_aug)
+
+        # Compute AUC from x=0 to x=x_end using interpolated curve
+        auc = float(np.trapz(yi, xi))
+        r = auc / 2
+
+        # Cumulative trapezoid by segment (robust, no SciPy needed)
+        dx = np.diff(xi)
+        seg_area = 0.5 * (yi[:-1] + yi[1:]) * dx
+        cum = np.concatenate(([0.0], np.cumsum(seg_area)))  # same length as x
+
+        target = auc * 0.5
+        # find first index where cumulative area >= target
+        idx = np.searchsorted(cum, target, side="left")
+        if idx == 0:
+            alpha_R = xi[0]
+        else:
+            # linear interpolate between x[idx-1] and x[idx]
+            a0, a1 = xi[idx - 1], xi[idx]
+            c0, c1 = cum[idx - 1], cum[idx]
+            if c1 == c0:
+                alpha_R = a0
+            else:
+                frac = (target - c0) / (c1 - c0)
+                alpha_R = a0 + frac * (a1 - a0)
+
+        # L_R is the curve value at alpha_R (linear interpolation)
+        L_R = float(np.interp(alpha_R, xi, yi))
+        alpha_R = float(auc / L_R) if L_R > 0 else np.nan
+        D_R = 2 / alpha_R
+
+        # Use pyplot-managed figure so plt.show() will display it
+        # Plot
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(x, y, 'o', color='tab:blue', label='Measured')
+        ax.plot(xi, yi, '-', color='tab:blue', alpha=0.9, label=f'Interpolated')
+
+        ax.plot(0, L_R, 'gP', zorder=10, clip_on=False, label=f'L_R = {L_R:.0f} mm')
+        ax.plot(alpha_R, 0, 'rx', zorder=10, clip_on=False, label=f'alpha_R = {alpha_R:.2f} mm⁻¹')
+
+        # axes start at 0,0 and set limits a bit beyond values for readability
+        x_max = x_end
+        y_max = y.max()
+        ax.set_xlim(0, x_max * 1.05)
+        ax.set_ylim(0, y_max * 1.10)
+
+        ax.set_xlabel("alpha (mm⁻¹)")
+        ax.set_ylabel("L (mm)")
+        ax.set_title(f"L vs alpha  (R={r:.0f})")
         ax.grid(True)
-
-        # --- Draw rectangle with area = AUC ---
-        D_R = inv_diameters.max()  # choose max x-axis value for width
-        L_R = auc / D_R  # height to match area
-        rect_x = [0, D_R, D_R, 0, 0]
-        rect_y = [0, 0, L_R, L_R, 0]
-        ax.plot(rect_x, rect_y, color='green', linestyle='--', label='AUC rectangle')
-
-        # --- Draw diagonal ---
-        ax.plot([0, D_R], [L_R, 0], color='red', linestyle=':', label='Diagonal')
-
-        # --- Annotate rectangle intersections ---
-        ax.text(-0.01 * D_R, L_R, f"L_R={L_R:.2f} cm", color='green', va='bottom')
-        ax.text(D_R, -0.05 * L_R, f"D_R={D_R:.2f} 1/mm", color='green', ha='right')
-
         ax.legend()
 
         # --- Display figure in QLabel ---
@@ -564,6 +611,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         canvas.setParent(lbl)
         canvas.setFixedSize(lbl.width(), lbl.height())
         canvas.draw()
+
+        # --- Display results in Results text box ---
+        self.lblR.setText(f"{r:.0f}")
+        self.lblDR.setText(f"{D_R:.2f} mm")
+        self.lblLR.setText(f"{L_R:.0f} mm")
 
 
 class FrameExtractorWorker(QtCore.QThread):
@@ -698,9 +750,9 @@ class BatchSegmentWorker(QtCore.QThread):
             result_json_path = os.path.join(folder, "special_distances_unetXresnet18.json")
             result_data = {}
             if min_top_distance < float('inf'):
-                result_data["MinTopDistance_cm"] = min_top_distance / 10.0  # mm → cm
+                result_data["MinTopDistance_mm"] = min_top_distance
             if max_bottom_distance > float('-inf'):
-                result_data["MaxBottomDistance_cm"] = max_bottom_distance / 10.0  # mm → cm
+                result_data["MaxBottomDistance_mm"] = max_bottom_distance
 
             with open(result_json_path, "w") as f:
                 json.dump(result_data, f, indent=2)
@@ -718,7 +770,7 @@ class BatchSegmentWorker(QtCore.QThread):
 
 
 class ResultsExporter:
-    def __init__(self, save_path="experiment_results.xlsx"):
+    def __init__(self, save_path="results.xlsx"):
         self.save_path = save_path
         # Always create a new workbook
         self.wb = openpyxl.Workbook()
