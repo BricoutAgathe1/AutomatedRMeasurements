@@ -4,10 +4,10 @@ import random
 from pathlib import Path
 
 # Paths for the image and mask directories
-train_images_folder = '../Datasets/Chris_scanners/Splits3/test/images'
-train_masks_folder = '../Datasets/Chris_scanners/Splits3/test/masks'
-augmented_images_folder = '../Datasets/Chris_scanners/Splits3/test/half_flipped'
-augmented_masks_folder = '../Datasets/Chris_scanners/Splits3/test/half_flipped'
+train_images_folder = '../Datasets/Chris_scanners/Merged'
+train_masks_folder = '../Datasets/Chris_scanners/Merged'
+augmented_images_folder = '../Datasets/Chris_scanners/Merged_halfflipped'
+augmented_masks_folder = '../Datasets/Chris_scanners/Merged_halfflipped'
 
 # Create augmented folders if they don’t exist
 os.makedirs(augmented_images_folder, exist_ok=True)
@@ -52,4 +52,29 @@ for image_name in images:
         cv2.imwrite(os.path.join(augmented_images_folder, image_name), image)
         cv2.imwrite(os.path.join(augmented_masks_folder, mask_name), mask)
 
-print("Image and mask augmentation completed.")
+# # Process each image and mask
+# for image_name in images:
+#     # Corresponding mask name (extension-safe)
+#     mask_name = os.path.splitext(image_name)[0] + '_mask.png'
+#
+#     # Full paths
+#     image_path = os.path.join(train_images_folder, image_name)
+#     mask_path = os.path.join(train_masks_folder, mask_name)
+#
+#     # Read the image and mask
+#     image = cv2.imread(image_path)
+#     mask = cv2.imread(mask_path)
+#
+#     if image is None or mask is None:
+#         print(f"Skipping {image_name} (missing image or mask)")
+#         continue
+#
+#     # Flip
+#     flipped_image = cv2.flip(image, 1)
+#     flipped_mask = cv2.flip(mask, 1)
+#     flipped_image_name = os.path.splitext(image_name)[0] + '_flipped.png'
+#     flipped_mask_name = os.path.splitext(mask_name)[0] + '_flipped.png'
+#     cv2.imwrite(os.path.join(augmented_images_folder, flipped_image_name), flipped_image)
+#     cv2.imwrite(os.path.join(augmented_masks_folder, flipped_mask_name), flipped_mask)
+#
+# print("Image and mask augmentation completed.")

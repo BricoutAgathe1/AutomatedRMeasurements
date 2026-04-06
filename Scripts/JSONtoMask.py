@@ -4,10 +4,10 @@ from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
 # Path to the VIA annotations file
-annotations_file = '../Annotations/Chris_scanners/SamsungR20_LA2-14A_json.json'
+annotations_file = '../Annotations/NoisyPipesMIA/MindrayN=0.7_json.json'
 
 # Directory to save mask images
-masks_dir = '../Datasets/Chris_scanners/Samsung R20/LA2-14A'
+masks_dir = '../Datasets/Noisy pipes/Subtractive/MindrayA20_L33-8U/MindrayA20_L33-8U_Noise=0.7/Masks'
 os.makedirs(masks_dir, exist_ok=True)
 
 # Load annotations
@@ -26,7 +26,7 @@ for key, file_annotations in annotations.items():
 
     if width == 0 or height == 0:
         # Load image to get its dimensions if not available in annotations
-        image_path = os.path.join('../Datasets/Chris_scanners/Samsung R20/LA2-14A', filename)
+        image_path = os.path.join('../Datasets/Noisy pipes/Subtractive/MindrayA20_L33-8U/MindrayA20_L33-8U_Noise=0.7', filename)
         with Image.open(image_path) as img:
             width, height = img.size
 
@@ -59,27 +59,27 @@ for key, file_annotations in annotations.items():
 
 print("Masks generated successfully.")
 
-# Visualize the original image and its mask
-for key, file_annotations in annotations.items():
-    filename = file_annotations['filename']
-    regions = file_annotations.get('regions', {})
-
-    if not regions:
-        continue
-
-    image_path = os.path.join('../Datasets/Chris_scanners/Samsung R20/LA2-14A', filename)
-    mask_path = os.path.join(masks_dir, f"{os.path.splitext(filename)[0]}_mask.png")
-
-    image = Image.open(image_path).convert("RGB")
-    mask = Image.open(mask_path)
-
-    # Display the image and its mask
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    ax[0].imshow(image)
-    ax[0].set_title("Original Image")
-    ax[1].imshow(mask, cmap='gray')
-    ax[1].set_title("Generated Mask")
-    plt.show()
-
-    # Break after one example for inspection
-    break
+# # Visualize the original image and its mask
+# for key, file_annotations in annotations.items():
+#     filename = file_annotations['filename']
+#     regions = file_annotations.get('regions', {})
+#
+#     if not regions:
+#         continue
+#
+#     image_path = os.path.join('../Datasets/Chris_scanners/Samsung R20/LA2-14A', filename)
+#     mask_path = os.path.join(masks_dir, f"{os.path.splitext(filename)[0]}_mask.png")
+#
+#     image = Image.open(image_path).convert("RGB")
+#     mask = Image.open(mask_path)
+#
+#     # Display the image and its mask
+#     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+#     ax[0].imshow(image)
+#     ax[0].set_title("Original Image")
+#     ax[1].imshow(mask, cmap='gray')
+#     ax[1].set_title("Generated Mask")
+#     plt.show()
+#
+#     # Break after one example for inspection
+#     break
